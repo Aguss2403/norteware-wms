@@ -101,6 +101,10 @@ body {
   padding: 1rem 1.25rem;
 }
 
+.summary-card h2 {
+  margin-top: 0;
+}
+
 .entry-links {
   display: flex;
   gap: 1rem;
