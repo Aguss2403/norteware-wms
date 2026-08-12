@@ -8,18 +8,34 @@ import { useClient } from '../context/ClientContext.jsx';
 
 const REVEAL_STEP_MS = 150;
 
-function cellClassName(location, isRouteCell) {
-  if (isRouteCell) return 'cell cell-route';
-  if (!location) return 'cell cell-empty';
+// D4 static class maps — literal strings so the JIT never purges them.
+// CELL_BASE carries the shared geometry; each variant owns its own bg/text
+// utilities (one utility per visual property, base or variant, never both).
+// 'free' = rack without productTypeId.
+const CELL_BASE =
+  'aspect-square flex items-center justify-center rounded-sm text-[0.72rem] font-bold leading-none min-w-0 overflow-hidden select-none transition-colors';
+const CELL_VARIANTS = {
+  route: 'animate-cell-reveal bg-brand-accent text-[#5c4305]',
+  empty: '',
+  path: 'bg-[#e9edf2]',
+  dock: 'bg-brand text-white',
+  wall: 'bg-[#37414b] text-[#a9b4bf]',
+  rack: 'bg-[#d9c9a3] text-[#6b5624]',
+  free: 'bg-[#b7d7b0] text-[#2f5d2a]',
+};
+
+function cellVariant(location, isRouteCell) {
+  if (isRouteCell) return CELL_VARIANTS.route;
+  if (!location) return CELL_VARIANTS.empty;
   switch (location.type) {
     case 'wall':
-      return 'cell cell-wall';
+      return CELL_VARIANTS.wall;
     case 'dock':
-      return 'cell cell-dock';
+      return CELL_VARIANTS.dock;
     case 'rack':
-      return location.productTypeId ? 'cell cell-rack' : 'cell cell-rack cell-free';
+      return location.productTypeId ? CELL_VARIANTS.rack : CELL_VARIANTS.free;
     default:
-      return 'cell cell-path';
+      return CELL_VARIANTS.path;
   }
 }
 
@@ -86,9 +102,9 @@ export default function WarehouseMap({ route = null }) {
   const hasRoute = Boolean(route && route.path && route.path.length > 0);
 
   return (
-    <div className="warehouse-map-wrap">
+    <div className="mt-6">
       <div
-        className="warehouse-map"
+        className="grid gap-[3px] rounded-lg border border-border bg-border p-[0.375rem] shadow-card max-w-[34rem]"
         style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)` }}
         role="img"
         aria-label={`Plano del almacén de ${layout.rows} por ${layout.cols} celdas`}
@@ -99,7 +115,7 @@ export default function WarehouseMap({ route = null }) {
           return (
             <div
               key={locationId}
-              className={cellClassName(location, isRouteCell)}
+              className={`${CELL_BASE} ${cellVariant(location, isRouteCell)}`}
               title={cellTitle(location)}
               style={isRouteCell ? { animationDelay: `${routeIndex * REVEAL_STEP_MS}ms` } : undefined}
             >
@@ -108,24 +124,27 @@ export default function WarehouseMap({ route = null }) {
           );
         })}
       </div>
-      <ul className="map-legend" aria-label="Leyenda del plano">
-        <li className="map-legend-item">
-          <span className="map-legend-swatch map-legend-swatch-dock" /> Muelle (D)
+      <ul
+        className="mx-0 mb-0 mt-[0.7rem] flex list-none flex-wrap gap-x-[1.1rem] gap-y-[0.4rem] p-0 text-[0.8rem] text-text-muted"
+        aria-label="Leyenda del plano"
+      >
+        <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
+          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-brand" /> Muelle (D)
         </li>
-        <li className="map-legend-item">
-          <span className="map-legend-swatch map-legend-swatch-assigned" /> Estante asignado (A)
+        <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
+          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-[#d9c9a3]" /> Estante asignado (A)
         </li>
-        <li className="map-legend-item">
-          <span className="map-legend-swatch map-legend-swatch-free" /> Estante libre (L)
+        <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
+          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-[#b7d7b0]" /> Estante libre (L)
         </li>
-        <li className="map-legend-item">
-          <span className="map-legend-swatch map-legend-swatch-wall" /> Pared (#)
+        <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
+          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-[#37414b]" /> Pared (#)
         </li>
-        <li className="map-legend-item">
-          <span className="map-legend-swatch map-legend-swatch-route" /> Ruta
+        <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
+          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-brand-accent" /> Ruta
         </li>
       </ul>
-      <p className="map-stats" role="status">
+      <p className="mx-0 mb-0 mt-[0.6rem] text-sm text-text-muted" role="status">
         {hasRoute && finished
           ? `Ruta: ${route.steps} pasos · ${route.distance} tramos`
           : hasRoute
