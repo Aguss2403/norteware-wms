@@ -23,13 +23,17 @@ export const warehouseVisuals = {
       { id: 'dispatch', label: 'DESPACHO', x: 854, y: 444, width: 308, height: 156, tone: 'green' },
     ],
     rack: COMMON_RACK,
+    rackBanks: [
+      { id: 'citrus-bulk', label: 'BAHÍA A-01', aisleLabel: 'PASILLO A-01', x: 274, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal' },
+      { id: 'citrus-main', label: 'BAHÍA A-02', aisleLabel: 'PASILLO A-02', x: 582, y: 144, width: 246, height: 80, rows: 1, columns: 5, orientation: 'horizontal' },
+    ],
     aisles: [
-      { id: 'citrus-west', label: 'PASILLO A-01', x: 118, y: 174, width: 190, height: 30, orientation: 'horizontal' },
-      { id: 'citrus-center', label: 'PASILLO A-02', x: 388, y: 174, width: 190, height: 30, orientation: 'horizontal' },
-      { id: 'citrus-east', label: 'PASILLO A-03', x: 654, y: 174, width: 190, height: 30, orientation: 'horizontal' },
+      { id: 'citrus-west', label: 'PASILLO A-01', x: 274, y: 232, width: 246, height: 16, orientation: 'horizontal' },
+      { id: 'citrus-center', label: 'PASILLO A-02', x: 582, y: 232, width: 246, height: 16, orientation: 'horizontal' },
+      { id: 'citrus-east', label: 'PASILLO A-03', x: 882, y: 232, width: 248, height: 16, orientation: 'horizontal' },
       { id: 'citrus-south', label: 'PASILLO A-04', x: 742, y: 328, width: 30, height: 174, orientation: 'vertical' },
     ],
-    docks: [{ id: 'receiving-dock', label: 'MUELLE', labelDx: 24, labelDy: -28 }],
+    docks: [{ id: 'receiving-dock', label: 'MUELLE', labelDx: 24, labelDy: -28, x: 132, y: 176 }],
     doors: [
       { id: 'citrus-inbound', label: 'PUERTA', x: 46, y: 286, width: 78, height: 18, side: 'west' },
       { id: 'citrus-outbound', label: 'PUERTA', x: 1004, y: 606, width: 78, height: 18, side: 'east' },
@@ -54,13 +58,17 @@ export const warehouseVisuals = {
       { id: 'dispatch', label: 'DESPACHO', x: 906, y: 444, width: 256, height: 156, tone: 'green' },
     ],
     rack: COMMON_RACK,
+    rackBanks: [
+      { id: 'sugar-bulk', label: 'BAHÍA B-01', aisleLabel: 'PASILLO B-01', x: 290, y: 144, width: 268, height: 80, rows: 1, columns: 4, orientation: 'horizontal' },
+      { id: 'sugar-main', label: 'BAHÍA B-02', aisleLabel: 'PASILLO B-02', x: 618, y: 144, width: 254, height: 80, rows: 1, columns: 4, orientation: 'horizontal' },
+    ],
     aisles: [
-      { id: 'sugar-north', label: 'PASILLO B-01', x: 282, y: 174, width: 214, height: 30, orientation: 'horizontal' },
-      { id: 'sugar-main', label: 'PASILLO B-02', x: 538, y: 174, width: 214, height: 30, orientation: 'horizontal' },
+      { id: 'sugar-north', label: 'PASILLO B-01', x: 290, y: 232, width: 268, height: 16, orientation: 'horizontal' },
+      { id: 'sugar-main', label: 'PASILLO B-02', x: 618, y: 232, width: 254, height: 16, orientation: 'horizontal' },
       { id: 'sugar-south', label: 'PASILLO B-03', x: 352, y: 376, width: 30, height: 160, orientation: 'vertical' },
       { id: 'sugar-pick', label: 'PASILLO B-04', x: 716, y: 376, width: 30, height: 160, orientation: 'vertical' },
     ],
-    docks: [{ id: 'loading-dock', label: 'MUELLE', labelDx: 24, labelDy: 30 }],
+    docks: [{ id: 'loading-dock', label: 'MUELLE', labelDx: 24, labelDy: 30, x: 132, y: 524 }],
     doors: [
       { id: 'sugar-inbound', label: 'PUERTA', x: 46, y: 606, width: 78, height: 18, side: 'west' },
       { id: 'sugar-outbound', label: 'PUERTA', x: 1004, y: 286, width: 78, height: 18, side: 'east' },
@@ -85,13 +93,17 @@ export const warehouseVisuals = {
       { id: 'dispatch', label: 'DESPACHO', x: 896, y: 444, width: 266, height: 156, tone: 'green' },
     ],
     rack: COMMON_RACK,
+    rackBanks: [
+      { id: 'wholesale-bulk', label: 'BAHÍA C-01', aisleLabel: 'PASILLO C-01', x: 306, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal' },
+      { id: 'wholesale-main', label: 'BAHÍA C-02', aisleLabel: 'PASILLO C-02', x: 608, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal' },
+    ],
     aisles: [
       { id: 'wholesale-pick', label: 'PASILLO C-01', x: 90, y: 218, width: 154, height: 30, orientation: 'horizontal' },
-      { id: 'wholesale-north', label: 'PASILLO C-02', x: 302, y: 174, width: 206, height: 30, orientation: 'horizontal' },
-      { id: 'wholesale-east', label: 'PASILLO C-03', x: 682, y: 174, width: 206, height: 30, orientation: 'horizontal' },
+      { id: 'wholesale-north', label: 'PASILLO C-02', x: 306, y: 232, width: 246, height: 16, orientation: 'horizontal' },
+      { id: 'wholesale-east', label: 'PASILLO C-03', x: 608, y: 232, width: 246, height: 16, orientation: 'horizontal' },
       { id: 'wholesale-south', label: 'PASILLO C-04', x: 760, y: 364, width: 30, height: 172, orientation: 'vertical' },
     ],
-    docks: [{ id: 'dispatch-dock', label: 'MUELLE', labelDx: 24, labelDy: 30 }],
+    docks: [{ id: 'dispatch-dock', label: 'MUELLE', labelDx: 24, labelDy: 30, x: 132, y: 524 }],
     doors: [
       { id: 'wholesale-inbound', label: 'PUERTA', x: 46, y: 606, width: 78, height: 18, side: 'west' },
       { id: 'wholesale-outbound', label: 'PUERTA', x: 1004, y: 286, width: 78, height: 18, side: 'east' },

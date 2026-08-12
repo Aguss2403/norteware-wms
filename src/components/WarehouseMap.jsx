@@ -36,8 +36,12 @@ function usePrefersReducedMotion() {
   return prefersReducedMotion;
 }
 
-function pointFor(layout, locationId, profile) {
-  const location = layout.index.get(locationId);
+function visualDockPoint(layout, profile) {
+  const dock = profile.docks?.[0];
+  if (dock && Number.isFinite(dock.x) && Number.isFinite(dock.y)) {
+    return { x: dock.x, y: dock.y };
+  }
+  const location = layout.index.get(layout.dockId);
   if (!location) return null;
   const { x, y, width, height } = profile.logicalGrid;
   return {
@@ -46,9 +50,49 @@ function pointFor(layout, locationId, profile) {
   };
 }
 
-function pointsForRoute(layout, route, profile) {
+function bankSlots(bank) {
+  const slots = [];
+  const slotWidth = bank.width / bank.columns;
+  const slotHeight = bank.height / bank.rows;
+  for (let index = 0; index < bank.rows * bank.columns; index += 1) {
+    const row = Math.floor(index / bank.columns);
+    const column = index % bank.columns;
+    slots.push({
+      bank,
+      x: bank.x + column * slotWidth,
+      y: bank.y + row * slotHeight,
+      width: slotWidth,
+      height: slotHeight,
+      center: {
+        x: bank.x + (column + 0.5) * slotWidth,
+        y: bank.y + (row + 0.5) * slotHeight,
+      },
+    });
+  }
+  return slots;
+}
+
+function rackSlotMap(layout, profile) {
+  const rackLocations = layout.locations.filter((location) => location.type === 'rack');
+  const slots = (profile.rackBanks ?? []).flatMap(bankSlots);
+  return new Map(rackLocations.map((location, index) => [location.locationId, slots[index] ?? null]));
+}
+
+function pointFor(layout, locationId, profile, rackSlots) {
+  const location = layout.index.get(locationId);
+  if (!location) return null;
+  if (locationId === layout.dockId) return visualDockPoint(layout, profile);
+  if (location.type === 'rack') return rackSlots?.get(locationId)?.center ?? null;
+  const { x, y, width, height } = profile.logicalGrid;
+  return {
+    x: x + ((location.col + 0.5) / layout.cols) * width,
+    y: y + ((location.row + 0.5) / layout.rows) * height,
+  };
+}
+
+function pointsForRoute(layout, route, profile, rackSlots) {
   if (!Array.isArray(route?.path) || route.path.length === 0) return [];
-  const points = route.path.map((locationId) => pointFor(layout, locationId, profile));
+  const points = route.path.map((locationId) => pointFor(layout, locationId, profile, rackSlots));
   return points.every(Boolean) ? points : [];
 }
 
@@ -118,46 +162,61 @@ function AisleLayer({ aisles }) {
 
 function RackLayer({ layout, profile }) {
   const rackLocations = layout.locations.filter((location) => location.type === 'rack');
-  const cellWidth = profile.logicalGrid.width / layout.cols;
-  const cellHeight = profile.logicalGrid.height / layout.rows;
-  const rackWidth = Math.min(cellWidth * 0.78, 94);
-  const rackHeight = Math.min(cellHeight * 0.68, 48);
+  const rackSlots = rackSlotMap(layout, profile);
+  let rackOffset = 0;
 
   return (
     <g aria-label="Estantes del almacén" role="group">
-      {rackLocations.map((location) => {
-        const point = pointFor(layout, location.locationId, profile);
-        const assigned = Boolean(location.productTypeId);
-        const rackLabel = assigned ? profile.rack.assignedLabel : profile.rack.freeLabel;
-        const title = assigned
-          ? `${profile.rack.label} ${location.locationId} — ${rackLabel} — ${location.productTypeId}`
-          : `${profile.rack.label} ${location.locationId} — ${rackLabel}`;
-        const rackX = point.x - rackWidth / 2;
-        const rackY = point.y - rackHeight / 2;
+      {(profile.rackBanks ?? []).map((bank) => {
+        const slots = bankSlots(bank);
+        const bankLocations = rackLocations.slice(rackOffset, rackOffset + slots.length);
+        rackOffset += slots.length;
         return (
-          <g key={location.locationId} aria-label={title} role="group">
-            <title>{title}</title>
-            <rect
-              x={rackX}
-              y={rackY}
-              width={rackWidth}
-              height={rackHeight}
-              rx="3"
-              fill={assigned ? COLORS.rack : COLORS.rackFree}
-              stroke={assigned ? '#3fb950' : COLORS.route}
-              strokeWidth="1.5"
-            />
-            <rect x={rackX} y={rackY} width="4" height={rackHeight} fill={assigned ? '#3fb950' : COLORS.route} />
-            {Array.from({ length: profile.rack.shelfLines }).map((_, index) => {
-              const shelfY = rackY + ((index + 1) / (profile.rack.shelfLines + 1)) * rackHeight;
-              return <line key={shelfY} x1={rackX + 8} y1={shelfY} x2={rackX + rackWidth - 7} y2={shelfY} stroke={COLORS.border} />;
+          <g key={bank.id} aria-label={`${bank.label}, ${bank.aisleLabel}`} role="group">
+            <title>{`${bank.label}, ${bank.aisleLabel}`}</title>
+            <rect x={bank.x} y={bank.y} width={bank.width} height={bank.height} rx="4" fill={COLORS.surface} stroke={COLORS.border} strokeWidth="2" />
+            <text x={bank.x} y={bank.y - 8} fill={COLORS.text} fontSize="10" fontWeight="700" letterSpacing="0.8">
+              {bank.aisleLabel}
+            </text>
+            {slots.map((slot, index) => {
+              const location = bankLocations[index];
+              if (!location) {
+                return <rect key={`${bank.id}-empty-${index}`} x={slot.x + 3} y={slot.y + 3} width={slot.width - 6} height={slot.height - 6} fill={COLORS.rackFree} fillOpacity="0.35" stroke={COLORS.border} />;
+              }
+              if (!rackSlots.get(location.locationId)) return null;
+              const assigned = Boolean(location.productTypeId);
+              const rackLabel = assigned ? profile.rack.assignedLabel : profile.rack.freeLabel;
+              const title = assigned
+                ? `${profile.rack.label} ${location.locationId} — ${rackLabel} — ${location.productTypeId}`
+                : `${profile.rack.label} ${location.locationId} — ${rackLabel}`;
+              const slotStyle = assigned ? COLORS.rack : COLORS.rackFree;
+              const statusColor = assigned ? '#b9e5c5' : COLORS.route;
+              return (
+                <g key={location.locationId} aria-label={title} role="group">
+                  <title>{title}</title>
+                  <rect x={slot.x + 3} y={slot.y + 3} width={slot.width - 6} height={slot.height - 6} fill={slotStyle} stroke={assigned ? '#3fb950' : COLORS.route} strokeWidth="1.5" />
+                  <rect x={slot.x + 3} y={slot.y + 3} width="4" height={slot.height - 6} fill={assigned ? '#3fb950' : COLORS.route} />
+                  <text x={slot.center.x} y={slot.center.y - 6} fill={COLORS.text} fontSize="8" fontWeight="700" textAnchor="middle">
+                    {location.locationId}
+                  </text>
+                  <text x={slot.center.x} y={slot.center.y + 8} fill={statusColor} fontSize="7" fontWeight="700" textAnchor="middle">
+                    {rackLabel}
+                  </text>
+                </g>
+              );
             })}
-            <text x={point.x} y={point.y - 2} fill={COLORS.text} fontSize="9" fontWeight="700" textAnchor="middle">
-              {profile.rack.label}
-            </text>
-            <text x={point.x} y={point.y + 10} fill={assigned ? '#b9e5c5' : COLORS.route} fontSize="8" fontWeight="700" textAnchor="middle">
-              {rackLabel}
-            </text>
+            {Array.from({ length: bank.rows - 1 }).map((_, index) => {
+              const shelfY = bank.y + ((index + 1) / bank.rows) * bank.height;
+              return <line key={`${bank.id}-row-${shelfY}`} x1={bank.x} y1={shelfY} x2={bank.x + bank.width} y2={shelfY} stroke={COLORS.border} strokeWidth="2" />;
+            })}
+            {Array.from({ length: bank.columns - 1 }).map((_, index) => {
+              const dividerX = bank.x + ((index + 1) / bank.columns) * bank.width;
+              return <line key={`${bank.id}-column-${dividerX}`} x1={dividerX} y1={bank.y} x2={dividerX} y2={bank.y + bank.height} stroke={COLORS.border} />;
+            })}
+            {Array.from({ length: profile.rack.shelfLines }).map((_, index) => {
+              const shelfY = bank.y + ((index + 1) / (profile.rack.shelfLines + 1)) * bank.height;
+              return <line key={`${bank.id}-shelf-${shelfY}`} x1={bank.x + 7} y1={shelfY} x2={bank.x + bank.width - 7} y2={shelfY} stroke={COLORS.border} strokeOpacity="0.8" />;
+            })}
           </g>
         );
       })}
@@ -190,7 +249,7 @@ function WallLayer({ layout, profile }) {
 }
 
 function DockLayer({ layout, profile }) {
-  const point = pointFor(layout, layout.dockId, profile);
+  const point = visualDockPoint(layout, profile);
   const dock = profile.docks[0];
   if (!point || !dock) return null;
   return (
@@ -317,7 +376,8 @@ export default function WarehouseMap({ route = null }) {
   const [finished, setFinished] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const hasRoute = Boolean(route && Array.isArray(route.path) && route.path.length > 0);
-  const projectedRoute = useMemo(() => pointsForRoute(layout, route, profile), [layout, profile, route]);
+  const rackSlots = useMemo(() => rackSlotMap(layout, profile), [layout, profile]);
+  const projectedRoute = useMemo(() => pointsForRoute(layout, route, profile, rackSlots), [layout, profile, rackSlots, route]);
   const hasRenderableRoute = hasRoute && projectedRoute.length === route.path.length;
   const visibleRoute = hasRenderableRoute ? projectedRoute.slice(0, revealCount) : [];
   const mapId = `warehouse-map-${layout.clientId}`;
