@@ -17,6 +17,17 @@ const STATUS_COPY = {
   'no-route': () => 'No hay ruta al estante asignado para este producto',
 };
 
+// Design D4 — static literal map so the JIT never purges status colors.
+// FLOW_STATUS_BASE carries layout only (no color); each variant owns its own
+// bg/text/border-l-* utilities (one utility per visual property, base or
+// variant, never both). Outbound domain: located|no-stock|no-route.
+const FLOW_STATUS_BASE = 'mt-4 max-w-[32rem] rounded-md border-l-[3px] px-3.5 py-2.5 text-sm';
+const FLOW_STATUS = {
+  located: 'bg-[#e8f0fa] text-brand border-l-brand',
+  'no-stock': 'bg-[#fbe9e9] text-[#a61b1b] border-l-[#a61b1b]',
+  'no-route': 'bg-[#fdf0e0] text-[#8a5a0b] border-l-[#b7791f]',
+};
+
 export default function Egreso() {
   const { layout } = useClient();
   const [route, setRoute] = useState(null);
@@ -41,11 +52,11 @@ export default function Egreso() {
   }, [layout.clientId]);
 
   return (
-    <section className="page">
-      <h1>Egreso y picking</h1>
+    <section className="mx-auto max-w-5xl">
+      <h1 className="mb-5 text-2xl tracking-[-0.01em] text-brand">Egreso y picking</h1>
       <SearchBox onSelect={handleSelect} />
       {status.kind !== 'idle' && (
-        <p className={`flow-status flow-status-${status.kind}`} role="status">
+        <p className={`${FLOW_STATUS_BASE} ${FLOW_STATUS[status.kind]}`} role="status">
           {STATUS_COPY[status.kind](status.rack)}
         </p>
       )}
