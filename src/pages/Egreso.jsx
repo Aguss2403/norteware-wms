@@ -6,26 +6,30 @@
 // Reset route on new selection); switching client also resets the flow state.
 
 import { useEffect, useState } from 'react';
+import Alert from '@mui/material/Alert';
+import Typography from '@mui/material/Typography';
 import { useClient } from '../context/ClientContext.jsx';
 import { resolveOutboundFlow } from '../domain/outbound.js';
 import SearchBox from '../components/SearchBox.jsx';
 import WarehouseMap from '../components/WarehouseMap.jsx';
 
+// Design D7 — status copy stays VERBATIM (Spanish, byte-identical to the
+// pre-MUI page); only the banner chrome changes, to a MUI Alert.
 const STATUS_COPY = {
   located: (rack) => `Ruta de picking al estante ${rack.locationId}`,
   'no-stock': () => 'Sin stock: este producto no tiene una ubicación asignada en este almacén',
   'no-route': () => 'No hay ruta al estante asignado para este producto',
 };
 
-// Design D4 — static literal map so the JIT never purges status colors.
-// FLOW_STATUS_BASE carries layout only (no color); each variant owns its own
-// bg/text/border-l-* utilities (one utility per visual property, base or
-// variant, never both). Outbound domain: located|no-stock|no-route.
-const FLOW_STATUS_BASE = 'mt-4 max-w-[32rem] rounded-md border-l-[3px] px-3.5 py-2.5 text-sm';
-const FLOW_STATUS = {
-  located: 'bg-[#e8f0fa] text-brand border-l-brand',
-  'no-stock': 'bg-[#fbe9e9] text-[#a61b1b] border-l-[#a61b1b]',
-  'no-route': 'bg-[#fdf0e0] text-[#8a5a0b] border-l-[#b7791f]',
+// Design D7 — flow status kinds -> MUI Alert severities with the dark-legible
+// theme colors. no-route is WARNING (resolved open question, same rationale as
+// the inbound page): the product has an assigned rack, the route just cannot
+// be built; warning + the Spanish copy still read as a problem. no-stock is a
+// hard error.
+const FLOW_SEVERITY = {
+  located: 'success',
+  'no-route': 'warning',
+  'no-stock': 'error',
 };
 
 export default function Egreso() {
@@ -53,12 +57,25 @@ export default function Egreso() {
 
   return (
     <section className="mx-auto max-w-5xl">
-      <h1 className="mb-5 text-2xl tracking-[-0.01em] text-brand">Egreso y picking</h1>
+      <Typography
+        component="h1"
+        sx={{
+          mb: 2.5,
+          fontSize: '1.5rem',
+          fontWeight: 600,
+          letterSpacing: '-0.01em',
+          color: 'primary.main',
+        }}
+      >
+        Egreso y picking
+      </Typography>
       <SearchBox onSelect={handleSelect} />
       {status.kind !== 'idle' && (
-        <p className={`${FLOW_STATUS_BASE} ${FLOW_STATUS[status.kind]}`} role="status">
+        // D7: MUI Alert with the dark-legible severity; role="status" keeps the
+        // pre-MUI banner's non-blocking announcement semantics.
+        <Alert severity={FLOW_SEVERITY[status.kind]} role="status" sx={{ mt: 2, maxWidth: '32rem' }}>
           {STATUS_COPY[status.kind](status.rack)}
-        </p>
+        </Alert>
       )}
       <WarehouseMap route={route} />
     </section>
