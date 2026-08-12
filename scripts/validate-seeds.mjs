@@ -14,6 +14,7 @@ import { skus } from '../src/data/skus.js';
 import { findRoute } from '../src/domain/bfs.js';
 import { findNearestFreeRack, findNearestRackOfType } from '../src/domain/assign.js';
 import { resolveInboundFlow } from '../src/domain/inbound.js';
+import { rackStatusFor, resolveOutboundFlow, searchSkus } from '../src/domain/outbound.js';
 import { LOCATION_TYPES, isDock, isRack } from '../src/domain/model.js';
 
 // Fixed contract (locked by the seed wall/dock placement):
@@ -138,6 +139,38 @@ const mayorista = layoutOf('mayorista');
 const flowMayorista = resolveInboundFlow(mayorista, skuOfType('PT-ENVASE'));
 check(flowMayorista.kind === 'assigned' && flowMayorista.rack.locationId === '1-2',
   `inbound flow: PT-ENVASE on mayorista must route to 1-2, got ${flowMayorista.kind}`);
+
+// 8. Outbound flow contract (spec: outbound-picking)
+const searchLimon = searchSkus(skus, 'lim');
+check(searchLimon.length === 1 && searchLimon[0].skuId === 'SKU-003',
+  `search: "lim" must match only SKU-003, got ${searchLimon.map((sku) => sku.skuId).join(',') || 'none'}`);
+check(searchSkus(skus, 'SKU-00').length === skus.length,
+  'search: code prefix "SKU-00" must match every seeded SKU');
+check(searchSkus(skus, '  NARANJA  ').some((sku) => sku.skuId === 'SKU-002'),
+  'search: name match must be case-insensitive and trimmed');
+check(searchSkus(skus, 'noexiste').length === 0, 'search: unknown term must match nothing');
+
+const outStatusCitrus = rackStatusFor(citrus, skuOfType('PT-CITRICO'));
+check(outStatusCitrus.kind === 'located' && outStatusCitrus.rackId === '1-6',
+  `outbound status: citrus PT-CITRICO must be located at 1-6, got ${outStatusCitrus.kind}`);
+check(rackStatusFor(citrus, skuOfType('PT-ENVASE')).kind === 'no-route',
+  'outbound status: citrus PT-ENVASE must report no-route (sealed racks)');
+check(rackStatusFor(citrus, skuOfType('PT-JUGO')).kind === 'unlocated',
+  'outbound status: citrus PT-JUGO must be unlocated (no assigned rack)');
+
+const outFlowCitrus = resolveOutboundFlow(citrus, skuOfType('PT-CITRICO'));
+check(outFlowCitrus.kind === 'located' && outFlowCitrus.rack.locationId === '1-6' && outFlowCitrus.route.path.length > 0,
+  `outbound flow: citrus PT-CITRICO must route to 1-6, got ${outFlowCitrus.kind}`);
+check(resolveOutboundFlow(citrus, skuOfType('PT-JUGO')).kind === 'no-stock',
+  'outbound flow: citrus PT-JUGO must report no-stock (no place assigned)');
+check(resolveOutboundFlow(citrus, skuOfType('PT-ENVASE')).kind === 'no-route',
+  'outbound flow: citrus PT-ENVASE must report no-route');
+check(resolveOutboundFlow(azucar, skuOfType('PT-AZUCAR')).kind === 'no-route',
+  'outbound flow: azucar PT-AZUCAR must report no-route (sealed rack block)');
+
+const outMayorista = resolveOutboundFlow(mayorista, skuOfType('PT-ENVASE'));
+check(outMayorista.kind === 'located' && outMayorista.rack.locationId === '1-2',
+  `outbound flow: PT-ENVASE on mayorista must route to 1-2, got ${outMayorista.kind}`);
 
 if (errors.length > 0) {
   console.error(`Seed validation FAILED (${errors.length} issue(s)):`);
