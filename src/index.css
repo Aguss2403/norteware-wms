@@ -199,3 +199,80 @@ body {
   font-size: 0.875rem;
   color: #52606d;
 }
+
+.qr-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 32rem;
+  margin-top: 1rem;
+  background: #fff;
+  border: 1px solid #e1e6eb;
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.qr-form-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.qr-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 0.375rem;
+  font: inherit;
+}
+
+.qr-form button {
+  padding: 0.5rem 0.9rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: #10324b;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.qr-form button[type='button'] {
+  background: #52606d;
+}
+
+.qr-form button:hover {
+  filter: brightness(1.15);
+}
+
+.qr-error {
+  margin: 0;
+  color: #a61b1b;
+  font-size: 0.875rem;
+}
+
+.flow-status {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.flow-status-assigned {
+  background: #e8f0fa;
+  color: #10324b;
+}
+
+.flow-status-auto-assigned {
+  background: #e6f4e2;
+  color: #2f5d2a;
+}
+
+.flow-status-no-route {
+  background: #fdf0e0;
+  color: #8a5a0b;
+}
+
+.flow-status-no-storage {
+  background: #fbe9e9;
+  color: #a61b1b;
+}

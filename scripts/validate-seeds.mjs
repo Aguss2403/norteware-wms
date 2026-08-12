@@ -12,7 +12,8 @@ import { clients } from '../src/data/clients.js';
 import { layouts } from '../src/data/layouts.js';
 import { skus } from '../src/data/skus.js';
 import { findRoute } from '../src/domain/bfs.js';
-import { findNearestFreeRack } from '../src/domain/assign.js';
+import { findNearestFreeRack, findNearestRackOfType } from '../src/domain/assign.js';
+import { resolveInboundFlow } from '../src/domain/inbound.js';
 import { LOCATION_TYPES, isDock, isRack } from '../src/domain/model.js';
 
 // Fixed contract (locked by the seed wall/dock placement):
@@ -107,6 +108,36 @@ check(nearest && nearest.locationId === FIXED_AUTO_ASSIGN.expectedRackId,
 // 6. Determinism: repeat the fixed route twice
 const again = findRoute(routeLayout, KNOWN_ROUTE.from, KNOWN_ROUTE.to);
 check(JSON.stringify(route.path) === JSON.stringify(again.path), 'BFS is not deterministic across identical inputs');
+
+// 7. Inbound flow contract (spec: inbound-receiving)
+const skuOfType = (productTypeId) => skus.find((sku) => sku.productTypeId === productTypeId);
+
+const citrus = layoutOf('citrus');
+const nearestCitrus = findNearestRackOfType(citrus, 'PT-CITRICO');
+check(nearestCitrus && nearestCitrus.locationId === '1-6',
+  `assigned route: expected citrus PT-CITRICO nearest rack 1-6, got ${nearestCitrus ? nearestCitrus.locationId : null}`);
+check(findNearestRackOfType(citrus, 'PT-ENVASE') === null,
+  'assigned route: citrus PT-ENVASE racks must all be unreachable (no-route demo case)');
+
+const flowAuto = resolveInboundFlow(citrus, skuOfType('PT-JUGO'));
+check(flowAuto.kind === 'auto-assigned' && flowAuto.rack.locationId === '2-6' && flowAuto.route.path.length > 0,
+  `inbound flow: PT-JUGO on citrus must auto-assign 2-6 with a route, got ${flowAuto.kind}`);
+
+const flowAssigned = resolveInboundFlow(citrus, skuOfType('PT-CITRICO'));
+check(flowAssigned.kind === 'assigned' && flowAssigned.rack.locationId === '1-6' && flowAssigned.route.path.length > 0,
+  `inbound flow: PT-CITRICO on citrus must route to 1-6 without assignment, got ${flowAssigned.kind}`);
+
+const flowNoRoute = resolveInboundFlow(citrus, skuOfType('PT-ENVASE'));
+check(flowNoRoute.kind === 'no-route', `inbound flow: PT-ENVASE on citrus must report no-route, got ${flowNoRoute.kind}`);
+
+const azucar = layoutOf('azucar');
+check(resolveInboundFlow(azucar, skuOfType('PT-AZUCAR')).kind === 'no-route',
+  'inbound flow: PT-AZUCAR on azucar must report no-route (sealed rack block)');
+
+const mayorista = layoutOf('mayorista');
+const flowMayorista = resolveInboundFlow(mayorista, skuOfType('PT-ENVASE'));
+check(flowMayorista.kind === 'assigned' && flowMayorista.rack.locationId === '1-2',
+  `inbound flow: PT-ENVASE on mayorista must route to 1-2, got ${flowMayorista.kind}`);
 
 if (errors.length > 0) {
   console.error(`Seed validation FAILED (${errors.length} issue(s)):`);
