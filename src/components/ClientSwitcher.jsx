@@ -1,23 +1,29 @@
 import { useClient } from '../context/ClientContext.jsx';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 
 export default function ClientSwitcher() {
   const { clients, activeClientId, switchClient } = useClient();
 
   return (
-    <label className="flex items-center gap-2 text-sm text-[#dbe7f1] max-sm:w-full">
-      <span className="whitespace-nowrap">Cliente</span>
-      <select
-        className="max-w-60 cursor-pointer rounded-md border border-white/35 bg-white px-2 py-[0.35rem] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand/45 max-sm:max-w-none max-sm:flex-1"
+    <FormControl size="small" sx={{ minWidth: 180 }}>
+      <InputLabel id="client-switcher-label">Cliente</InputLabel>
+      <Select
+        labelId="client-switcher-label"
+        id="client-switcher"
         value={activeClientId}
+        label="Cliente"
         onChange={(event) => switchClient(event.target.value)}
         aria-label="Cliente activo"
       >
         {clients.map((client) => (
-          <option key={client.clientId} value={client.clientId}>
+          <MenuItem key={client.clientId} value={client.clientId}>
             {client.name}
-          </option>
+          </MenuItem>
         ))}
-      </select>
-    </label>
+      </Select>
+    </FormControl>
   );
 }
