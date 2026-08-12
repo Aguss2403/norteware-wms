@@ -1,4 +1,4 @@
-// Warehouse map for the active client (design D1, spec: Route visualization).
+// Warehouse map for the active client (design D6, spec: Route visualization).
 // Renders the client's grid with CSS Grid. When a `route` prop is provided,
 // the path reveals cell by cell (previous reveal resets first) and step /
 // distance counts are shown. Renders a plain grid when no route is active.
@@ -8,20 +8,20 @@ import { useClient } from '../context/ClientContext.jsx';
 
 const REVEAL_STEP_MS = 150;
 
-// D4 static class maps — literal strings so the JIT never purges them.
+// D6 static class maps — literal strings so the JIT never purges them.
 // CELL_BASE carries the shared geometry; each variant owns its own bg/text
 // utilities (one utility per visual property, base or variant, never both).
 // 'free' = rack without productTypeId.
 const CELL_BASE =
   'aspect-square flex items-center justify-center rounded-sm text-[0.72rem] font-bold leading-none min-w-0 overflow-hidden select-none transition-colors';
 const CELL_VARIANTS = {
-  route: 'animate-cell-reveal bg-brand-accent text-[#5c4305]',
+  route: 'animate-cell-reveal bg-brand-accent text-brand-dark',
   empty: '',
-  path: 'bg-[#e9edf2]',
-  dock: 'bg-brand text-white',
-  wall: 'bg-[#37414b] text-[#a9b4bf]',
-  rack: 'bg-[#d9c9a3] text-[#6b5624]',
-  free: 'bg-[#b7d7b0] text-[#2f5d2a]',
+  path: 'bg-[#1c2128]',
+  dock: 'bg-brand text-brand-dark',
+  wall: 'bg-[#21262d] text-[#6e7681]',
+  rack: 'bg-[#14261d] text-[#3fb950]',
+  free: 'bg-[#101f16] text-[#4af626]',
 };
 
 function cellVariant(location, isRouteCell) {
@@ -129,19 +129,19 @@ export default function WarehouseMap({ route = null }) {
         aria-label="Leyenda del plano"
       >
         <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
-          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-brand" /> Muelle (D)
+          <span className="size-[0.8rem] rounded-sm border border-border bg-brand" /> Muelle (D)
         </li>
         <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
-          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-[#d9c9a3]" /> Estante asignado (A)
+          <span className="size-[0.8rem] rounded-sm border border-border bg-[#14261d]" /> Estante asignado (A)
         </li>
         <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
-          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-[#b7d7b0]" /> Estante libre (L)
+          <span className="size-[0.8rem] rounded-sm border border-border bg-[#101f16]" /> Estante libre (L)
         </li>
         <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
-          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-[#37414b]" /> Pared (#)
+          <span className="size-[0.8rem] rounded-sm border border-border bg-[#21262d]" /> Pared (#)
         </li>
         <li className="flex items-center gap-[0.35rem] whitespace-nowrap">
-          <span className="size-[0.8rem] rounded-sm border border-[#10324b]/25 bg-brand-accent" /> Ruta
+          <span className="size-[0.8rem] rounded-sm border border-border bg-brand-accent" /> Ruta
         </li>
       </ul>
       <p className="mx-0 mb-0 mt-[0.6rem] text-sm text-text-muted" role="status">
