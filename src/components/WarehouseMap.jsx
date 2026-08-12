@@ -23,6 +23,8 @@ function cellClassName(location, isRouteCell) {
   }
 }
 
+const TYPE_LABELS = { rack: 'Estante', dock: 'Muelle', wall: 'Pared', path: 'Pasillo' };
+
 function cellTitle(location) {
   if (!location) return '';
   if (location.type === 'rack') {
@@ -30,7 +32,15 @@ function cellTitle(location) {
       ? `Estante ${location.locationId} — ${location.productTypeId}`
       : `Estante libre ${location.locationId}`;
   }
-  return `${location.type} ${location.locationId}`;
+  return `${TYPE_LABELS[location.type] ?? location.type} ${location.locationId}`;
+}
+
+function cellGlyph(location) {
+  if (!location) return '';
+  if (location.type === 'rack') return location.productTypeId ? 'A' : 'L';
+  if (location.type === 'dock') return 'D';
+  if (location.type === 'wall') return '#';
+  return '';
 }
 
 export default function WarehouseMap({ route = null }) {
@@ -93,11 +103,28 @@ export default function WarehouseMap({ route = null }) {
               title={cellTitle(location)}
               style={isRouteCell ? { animationDelay: `${routeIndex * REVEAL_STEP_MS}ms` } : undefined}
             >
-              {location?.type === 'rack' ? (location.productTypeId ? 'A' : 'L') : ''}
+              {cellGlyph(location)}
             </div>
           );
         })}
       </div>
+      <ul className="map-legend" aria-label="Leyenda del plano">
+        <li className="map-legend-item">
+          <span className="map-legend-swatch map-legend-swatch-dock" /> Muelle (D)
+        </li>
+        <li className="map-legend-item">
+          <span className="map-legend-swatch map-legend-swatch-assigned" /> Estante asignado (A)
+        </li>
+        <li className="map-legend-item">
+          <span className="map-legend-swatch map-legend-swatch-free" /> Estante libre (L)
+        </li>
+        <li className="map-legend-item">
+          <span className="map-legend-swatch map-legend-swatch-wall" /> Pared (#)
+        </li>
+        <li className="map-legend-item">
+          <span className="map-legend-swatch map-legend-swatch-route" /> Ruta
+        </li>
+      </ul>
       <p className="map-stats" role="status">
         {hasRoute && finished
           ? `Ruta: ${route.steps} pasos · ${route.distance} tramos`
