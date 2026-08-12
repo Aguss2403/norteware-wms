@@ -1,7 +1,7 @@
 // Not-found page (spec: app-shell, design D7). Themed 404: MUI Paper +
 // Typography and a contained Button that links back to the dashboard. The old
 // Tailwind .entry-link class (white text on brand green) is gone — the Button
-// uses the theme's primary contrastText (#04140a).
+// uses the theme's primary contrastText (light text on the muted brand green).
 
 import { Link } from 'react-router-dom';
 import Button from '@mui/material/Button';

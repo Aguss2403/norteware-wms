@@ -21,7 +21,7 @@ const CELL_VARIANTS = {
   dock: 'bg-brand text-brand-dark',
   wall: 'bg-[#21262d] text-[#6e7681]',
   rack: 'bg-[#14261d] text-[#3fb950]',
-  free: 'bg-[#101f16] text-[#4af626]',
+  free: 'bg-[#101f16] text-[#449b62]',
 };
 
 function cellVariant(location, isRouteCell) {

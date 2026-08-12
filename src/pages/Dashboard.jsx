@@ -50,7 +50,7 @@ export default function Dashboard() {
       </Paper>
       <WarehouseMap />
       <div className="mt-6 flex flex-wrap gap-4">
-        {/* D7: contained Buttons use theme primary + contrastText #04140a (never white). */}
+        {/* D7: contained Buttons use theme primary + contrastText (light text on the muted brand green). */}
         <Button component={Link} to="/ingreso" variant="contained">
           Ingreso de mercadería
         </Button>
