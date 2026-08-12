@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import ClientSwitcher from './ClientSwitcher.jsx';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Dashboard', end: true },
@@ -23,6 +24,7 @@ export default function Navbar() {
           </li>
         ))}
       </ul>
+      <ClientSwitcher />
     </nav>
   );
 }
