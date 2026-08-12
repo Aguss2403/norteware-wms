@@ -10,8 +10,18 @@
 //   - A query with no matches shows a no-results message and selects nothing.
 //   - Selection is reported to the parent; the route decision belongs to the
 //     page (spec: Product selection / Pick route display).
+//
+// Design D5: MUI TextField + custom List of ListItemButtons; SEARCH_STATUS is
+// remapped to dark-legible hexes (D1 error/warning/success); searchSkus and
+// rackStatusFor are reused unchanged, so empty-query browse parity holds.
 
 import { useState } from 'react';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import { useClient } from '../context/ClientContext.jsx';
 import { skus } from '../data/skus.js';
 import { rackStatusFor, searchSkus } from '../domain/outbound.js';
@@ -22,12 +32,11 @@ const STATUS_COPY = {
   unlocated: () => 'Sin ubicación asignada',
 };
 
-// Design D4 — static literal map so the JIT never purges status colors;
-// the span base carries no text color, the variant supplies it.
+// Design D5 — SEARCH_STATUS remapped to the dark theme's status hexes.
 const SEARCH_STATUS = {
-  located: 'text-[#2f5d2a]',
-  unlocated: 'text-[#8a5a0b]',
-  'no-route': 'text-[#a61b1b]',
+  located: '#3fb950',
+  unlocated: '#d29922',
+  'no-route': '#f85149',
 };
 
 export default function SearchBox({ onSelect }) {
@@ -39,44 +48,65 @@ export default function SearchBox({ onSelect }) {
 
   return (
     <div className="mt-4 flex max-w-[32rem] flex-col gap-2 rounded-lg border border-border bg-surface px-5 py-4 shadow-card">
-      <label htmlFor="product-search" className="text-sm font-semibold">
-        Buscar producto
-      </label>
-      <input
+      <TextField
         id="product-search"
         type="search"
-        value={query}
+        label="Buscar producto"
         placeholder="Código o nombre (Ej: lim, SKU-00)"
-        className="min-w-0 flex-1 rounded-md border border-[#cbd5e0] bg-white px-[0.6rem] py-2 focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand/45"
+        value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
-      <ul
-        className="m-0 flex list-none flex-col gap-[0.4rem] p-0"
+      <List
         aria-label="Resultados de búsqueda"
+        disablePadding
+        sx={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}
       >
         {results.map((sku) => {
           const status = rackStatusFor(layout, sku);
           return (
-            <li key={sku.skuId}>
-              <button
-                type="button"
-                className="grid w-full cursor-pointer grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-[0.1rem] rounded-md border border-border bg-[#fbfcfd] px-3 py-[0.55rem] text-left transition-[background-color,border-color] hover:border-[#c3d4e6] hover:bg-[#eef4fb] focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand/45"
+            <ListItem key={sku.skuId} disablePadding>
+              <ListItemButton
                 onClick={() => onSelect(sku)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  gap: '0.1rem',
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: 1,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
               >
-                <span className="font-semibold">{sku.name}</span>
-                <span className="text-[0.8rem] text-[#7b8794]">{sku.skuId}</span>
-                <span className={`col-span-full text-[0.8rem] ${SEARCH_STATUS[status.kind]}`}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    width: '100%',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    gap: 2,
+                  }}
+                >
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {sku.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {sku.skuId}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ color: SEARCH_STATUS[status.kind] }}>
                   {STATUS_COPY[status.kind](status.rackId)}
-                </span>
-              </button>
-            </li>
+                </Typography>
+              </ListItemButton>
+            </ListItem>
           );
         })}
-      </ul>
+      </List>
       {noMatch && (
-        <p className="m-0 text-sm text-[#a61b1b]" role="status">
+        <Typography variant="body2" color="error" role="status">
           Sin resultados para “{query.trim()}”
-        </p>
+        </Typography>
       )}
     </div>
   );
