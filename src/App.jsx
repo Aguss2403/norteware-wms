@@ -7,9 +7,9 @@ import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
   return (
-    <div className="app-shell">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main className="app-content">
+      <main className="flex-1 px-6 pb-10 pt-7 max-sm:px-4 max-sm:pb-8 max-sm:pt-5">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/ingreso" element={<Ingreso />} />
