@@ -1,12 +1,15 @@
+// Dashboard page (spec: app-shell Requirement: Dashboard, design D7).
+// Shows the ACTIVE client's warehouse summary from seeded data on an MUI
+// Paper/Typography card and offers entry points to Ingreso and Egreso as MUI
+// Buttons that keep the react-router links. Layout/tracking of the summary
+// matches the pre-MUI card; only the chrome is MUI (Paper/Typography/Button).
+
 import { Link } from 'react-router-dom';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import { useClient } from '../context/ClientContext.jsx';
 import WarehouseMap from '../components/WarehouseMap.jsx';
-
-// D4 static literal class — one utility per visual property, literal string
-// so the JIT never purges it. Covers the old .entry-link rule (bg/border/
-// text + hover/focus-visible variants).
-const ENTRY_LINK =
-  'inline-block rounded-md bg-brand px-[1.1rem] py-[0.6rem] font-medium text-white no-underline transition-[background-color,transform] hover:-translate-y-px hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent';
 
 export default function Dashboard() {
   const { client, layout } = useClient();
@@ -17,25 +20,43 @@ export default function Dashboard() {
 
   return (
     <section className="mx-auto max-w-5xl">
-      <h1 className="mb-5 text-2xl tracking-[-0.01em] text-brand">Panel de control</h1>
-      <div className="rounded-lg border border-border bg-surface px-5 py-4 shadow-card">
-        <h2 className="mb-[0.4rem] text-[1.1rem] text-brand">{client.name}</h2>
-        <p className="my-[0.3rem] text-text-muted">
+      <Typography
+        component="h1"
+        sx={{
+          mb: 2.5,
+          fontSize: '1.5rem',
+          fontWeight: 600,
+          letterSpacing: '-0.01em',
+          color: 'primary.main',
+        }}
+      >
+        Panel de control
+      </Typography>
+      {/* Summary card: outlined Paper matches the old border-border/bg-surface card. */}
+      <Paper variant="outlined" sx={{ px: 2.5, py: 2 }}>
+        <Typography
+          component="h2"
+          sx={{ mb: '0.4rem', fontSize: '1.1rem', color: 'primary.main' }}
+        >
+          {client.name}
+        </Typography>
+        <Typography color="text.secondary" sx={{ my: 0.3 }}>
           Almacén de {layout.rows} × {layout.cols} celdas · {racks.length} estantes ({freeRacks.length} libres)
-        </p>
-        <p className="my-[0.3rem] text-text-muted">
+        </Typography>
+        <Typography color="text.secondary" sx={{ my: 0.3 }}>
           Tipos de producto almacenados:{' '}
           {storedTypes.length > 0 ? storedTypes.join(', ') : 'Ninguno'}
-        </p>
-      </div>
+        </Typography>
+      </Paper>
       <WarehouseMap />
       <div className="mt-6 flex flex-wrap gap-4">
-        <Link className={ENTRY_LINK} to="/ingreso">
+        {/* D7: contained Buttons use theme primary + contrastText #04140a (never white). */}
+        <Button component={Link} to="/ingreso" variant="contained">
           Ingreso de mercadería
-        </Link>
-        <Link className={ENTRY_LINK} to="/egreso">
+        </Button>
+        <Button component={Link} to="/egreso" variant="contained">
           Egreso y picking
-        </Link>
+        </Button>
       </div>
     </section>
   );
