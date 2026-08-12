@@ -57,6 +57,9 @@ export default function Ingreso() {
     <section className="page">
       <h1>Ingreso de mercadería</h1>
       <QrInput onSubmit={handleSubmit} error={error} />
+      <p className="flow-hint">
+        Lectura de QR simulada: ingrese el código a mano o use «Código demo» (escaneo por cámara fuera de alcance).
+      </p>
       {status.kind !== 'idle' && (
         <p className={`flow-status flow-status-${status.kind}`} role="status">
           {STATUS_COPY[status.kind](status.rack)}
