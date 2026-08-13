@@ -23,8 +23,8 @@ export const warehouseVisuals = {
       { id: 'dispatch', label: 'DESPACHO', x: 854, y: 444, width: 308, height: 156, tone: 'green' },
     ],
     routeGeometry: {
-      rowY: [270, 310, 350, 390, 470, 520],
-      columnX: [132, 220, 310, 400, 490, 560, 900, 1040],
+      rowY: [270, 250, 250, 390, 470, 520],
+      columnX: [132, 220, 310, 400, 490, 530, 900, 1040],
     },
     routeLanes: [
       { id: 'citrus-main', label: 'CORREDOR PRINCIPAL', orientation: 'horizontal', x1: 90, y: 310, x2: 1110 },
@@ -68,7 +68,7 @@ export const warehouseVisuals = {
       { id: 'dispatch', label: 'DESPACHO', x: 906, y: 444, width: 256, height: 156, tone: 'green' },
     ],
     routeGeometry: {
-      rowY: [110, 260, 320, 400, 520],
+      rowY: [110, 250, 330, 250, 520],
       columnX: [132, 220, 310, 400, 490, 580, 900, 1040],
     },
     routeLanes: [
@@ -114,7 +114,7 @@ export const warehouseVisuals = {
       { id: 'dispatch', label: 'DESPACHO', x: 896, y: 444, width: 266, height: 156, tone: 'green' },
     ],
     routeGeometry: {
-      rowY: [110, 270, 330, 390, 470, 520, 570],
+      rowY: [110, 250, 250, 390, 470, 520, 570],
       columnX: [132, 220, 300, 560, 700, 820, 900],
     },
     routeLanes: [

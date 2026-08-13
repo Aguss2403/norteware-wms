@@ -115,10 +115,47 @@ function pointFor(layout, locationId, profile, rackSlots) {
   };
 }
 
+function simplifyRoutePoints(points) {
+  const simplified = [];
+  for (const point of points) {
+    const previous = simplified[simplified.length - 1];
+    if (previous && previous.x === point.x && previous.y === point.y) {
+      if (point.rackSlot) simplified[simplified.length - 1] = point;
+      continue;
+    }
+
+    simplified.push(point);
+    while (simplified.length >= 3) {
+      const last = simplified.length - 1;
+      const before = simplified[last - 2];
+      const current = simplified[last - 1];
+      const next = simplified[last];
+      const sameColumn = before.x === current.x && current.x === next.x;
+      const sameRow = before.y === current.y && current.y === next.y;
+      if (current.rackSlot || (!sameColumn && !sameRow)) break;
+      simplified.splice(last - 1, 1);
+    }
+  }
+
+  const target = simplified[simplified.length - 1];
+  while (target?.rackSlot && simplified.length >= 3) {
+    const last = simplified.length - 1;
+    const candidate = simplified[last - 2];
+    const beforeTarget = simplified[last - 1];
+    const sameColumn = candidate.x === beforeTarget.x;
+    const sameRow = candidate.y === beforeTarget.y;
+    const candidateDistance = Math.abs(candidate.x - target.x) + Math.abs(candidate.y - target.y);
+    const beforeTargetDistance = Math.abs(beforeTarget.x - target.x) + Math.abs(beforeTarget.y - target.y);
+    if ((!sameColumn && !sameRow) || candidateDistance >= beforeTargetDistance) break;
+    simplified.splice(last - 1, 1);
+  }
+  return simplified;
+}
+
 function pointsForRoute(layout, route, profile, rackSlots) {
   if (!Array.isArray(route?.path) || route.path.length === 0) return [];
   const points = route.path.map((locationId) => pointFor(layout, locationId, profile, rackSlots));
-  return points.every(Boolean) ? points : [];
+  return points.every(Boolean) ? simplifyRoutePoints(points) : [];
 }
 
 function rackSegment(start, end) {
@@ -460,7 +497,7 @@ export default function WarehouseMap({ route = null }) {
   const hasRoute = Boolean(route && Array.isArray(route.path) && route.path.length > 0);
   const rackSlots = useMemo(() => rackSlotMap(layout, profile), [layout, profile]);
   const projectedRoute = useMemo(() => pointsForRoute(layout, route, profile, rackSlots), [layout, profile, rackSlots, route]);
-  const hasRenderableRoute = hasRoute && projectedRoute.length === route.path.length;
+  const hasRenderableRoute = hasRoute && projectedRoute.length > 0;
   const visibleRoute = hasRenderableRoute ? projectedRoute.slice(0, revealCount) : [];
   const mapId = `warehouse-map-${layout.clientId}`;
   const descriptionId = `${mapId}-description`;
