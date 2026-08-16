@@ -55,15 +55,15 @@ Tracker branch `feature/claude-dashboard` (from `14cd355`). PR #1 base = tracker
 
 ## Phase 4 (PR4): Dashboard
 
-- [ ] 4.1 **src/data/dashboard.js (hybrid)** — `buildDashboardData({client,layout})` → `{kpis,racks,movements}`; occupancy/SKUs derived from seeds, orders/picking/movements labeled mock reusing seeded SKU/rack ids. **AC**: not imported by `validate-seeds.mjs`; build green. **Files**: `src/data/dashboard.js`
+- [x] 4.1 **src/data/dashboard.js (hybrid)** — `buildDashboardData({client,layout})` → `{kpis,racks,movements}`; occupancy/SKUs derived from seeds, orders/picking/movements labeled mock reusing seeded SKU/rack ids. **AC**: not imported by `validate-seeds.mjs`; build green. **Files**: `src/data/dashboard.js`
 
-- [ ] 4.2 **KpiCard.jsx (new)** — props `{label,badge?,value,sub}`; label row + pill badge, Space Grotesk 26px value, muted sub. **AC**: pure presentational, no data imports. **Files**: `src/components/KpiCard.jsx`
+- [x] 4.2 **KpiCard.jsx (new)** — props `{label,badge?,value,sub}`; label row + pill badge, Space Grotesk 26px value, muted sub. **AC**: pure presentational, no data imports. **Files**: `src/components/KpiCard.jsx`
 
-- [ ] 4.3 **RackStatusList.jsx (new)** — props `{racks,activeRackId?,updatedAt?}`; mono rack tile (free green/mid warning/full danger), status copy, mono pct. **AC**: seeded racks reflect assignments; client switch updates list. **Files**: `src/components/RackStatusList.jsx`
+- [x] 4.3 **RackStatusList.jsx (new)** — props `{racks,activeRackId?,updatedAt?}`; mono rack tile (free green/mid warning/full danger), status copy, mono pct. **AC**: seeded racks reflect assignments; client switch updates list. **Files**: `src/components/RackStatusList.jsx`
 
-- [ ] 4.4 **MovementsTable.jsx (new)** — props `{movements}`; MUI Table: mono SKU/location, Inter product, ingreso=green/egreso=info badge, time. **AC**: no backend call; rows render all columns. **Files**: `src/components/MovementsTable.jsx`
+- [x] 4.4 **MovementsTable.jsx (new)** — props `{movements}`; MUI Table: mono SKU/location, Inter product, ingreso=green/egreso=info badge, time. **AC**: no backend call; rows render all columns. **Files**: `src/components/MovementsTable.jsx`
 
-- [ ] 4.5 **Dashboard.jsx rewrite** — topbar greeting/date + search + avatar, 4 KpiCard row, 60/40 grid (dark MapShell + RackStatusList), full-width MovementsTable. **AC**: real KPIs match seeds and change with client; mocks labeled. **Files**: `src/pages/Dashboard.jsx`
+- [x] 4.5 **Dashboard.jsx rewrite** — topbar greeting/date + search + avatar, 4 KpiCard row, 60/40 grid (dark MapShell + RackStatusList), full-width MovementsTable. **AC**: real KPIs match seeds and change with client; mocks labeled. **Files**: `src/pages/Dashboard.jsx`
 
 ## Phase 5 (PR5): Pages Restyle
 

@@ -1,62 +1,71 @@
-// Dashboard page (spec: app-shell Requirement: Dashboard, design D7).
-// Shows the ACTIVE client's warehouse summary from seeded data on an MUI
-// Paper/Typography card and offers entry points to Ingreso and Egreso as MUI
-// Buttons that keep the react-router links. Layout/tracking of the summary
-// matches the pre-MUI card; only the chrome is MUI (Paper/Typography/Button).
+// Dashboard page (spec: dashboard-overview, design D4).
+// Professional SaaS overview: topbar greeting/date + search + avatar, a 4-card
+// KPI row, a 60/40 grid with the dark map hero card (PR3 MapShell) and the
+// rack status card, and a full-width movements table. All values come from
+// the hybrid account data module: occupancy/SKUs are real seeds, orders/
+// picking/movements are labeled mocks reusing seeded ids.
 
-import { Link } from 'react-router-dom';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
+import { useMemo } from 'react';
+import SearchIcon from '@mui/icons-material/Search';
 import { useClient } from '../context/ClientContext.jsx';
+import { buildDashboardData } from '../data/dashboard.js';
 import WarehouseMap from '../components/WarehouseMap.jsx';
+import KpiCard from '../components/KpiCard.jsx';
+import RackStatusList from '../components/RackStatusList.jsx';
+import MovementsTable from '../components/MovementsTable.jsx';
 
 export default function Dashboard() {
   const { client, layout } = useClient();
+  const data = useMemo(() => buildDashboardData({ client, layout }), [client, layout]);
 
-  const racks = layout.locations.filter((location) => location.type === 'rack');
-  const freeRacks = racks.filter((location) => !location.productTypeId);
-  const storedTypes = [...new Set(racks.map((location) => location.productTypeId).filter(Boolean))];
+  const dateLabel = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
 
   return (
-    <section className="mx-auto max-w-5xl">
-      <Typography
-        component="h1"
-        sx={{
-          mb: 2.5,
-          fontSize: '1.5rem',
-          fontWeight: 600,
-          letterSpacing: '-0.01em',
-          color: 'primary.main',
-        }}
-      >
-        Panel de control
-      </Typography>
-      {/* Summary card: outlined Paper matches the old border-border/bg-surface card. */}
-      <Paper variant="outlined" sx={{ px: 2.5, py: 2 }}>
-        <Typography
-          component="h2"
-          sx={{ mb: '0.4rem', fontSize: '1.1rem', color: 'primary.main' }}
-        >
-          {client.name}
-        </Typography>
-        <Typography color="text.secondary" sx={{ my: 0.3 }}>
-          Almacén de {layout.rows} × {layout.cols} celdas · {racks.length} estantes ({freeRacks.length} libres)
-        </Typography>
-        <Typography color="text.secondary" sx={{ my: 0.3 }}>
-          Tipos de producto almacenados:{' '}
-          {storedTypes.length > 0 ? storedTypes.join(', ') : 'Ninguno'}
-        </Typography>
-      </Paper>
-      <WarehouseMap />
-      <div className="mt-6 flex flex-wrap gap-4">
-        {/* D7: contained Buttons use theme primary + contrastText (light text on the muted brand green). */}
-        <Button component={Link} to="/ingreso" variant="contained">
-          Ingreso de mercadería
-        </Button>
-        <Button component={Link} to="/egreso" variant="contained">
-          Egreso y picking
-        </Button>
+    <section className="mx-auto max-w-[74rem]">
+      {/* Topbar (mockup .topbar): greeting + date, search, avatar. */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-[22px] font-semibold tracking-tight text-text">
+            Hola, Agustín 👋
+          </h1>
+          <p className="mt-1 text-[13px] text-text-muted">Así está el depósito hoy, {dateLabel}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Presentational search affordance (mockup .search); real search
+              UX stays out of scope for this slice. */}
+          <div className="flex items-center gap-2 rounded-[10px] border border-border bg-card px-3 py-2 text-[13px] text-text-muted">
+            <SearchIcon sx={{ fontSize: 14, color: 'text.secondary' }} aria-hidden="true" />
+            <span>Buscar SKU o pallet…</span>
+          </div>
+          <span
+            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-ink font-display text-xs font-semibold text-lime"
+            aria-hidden="true"
+          >
+            AG
+          </span>
+        </div>
+      </div>
+
+      {/* KPI row (mockup .kpis): 4 cards from dashboard.js. */}
+      <div className="grid grid-cols-4 gap-3.5 max-lg:grid-cols-2 max-sm:grid-cols-1">
+        {data.kpis.map((kpi) => (
+          <KpiCard key={kpi.id} label={kpi.label} badge={kpi.badge} value={kpi.value} sub={kpi.sub} />
+        ))}
+      </div>
+
+      {/* 60/40 grid (mockup .grid): dark map hero + rack status. The map card
+          is PR3's MapShell; RackStatusList gets the same mt-6 inset so both
+          start aligned in their grid tracks. */}
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[1.55fr_1fr]">
+        <WarehouseMap />
+        <div className="mt-6">
+          <RackStatusList racks={data.racks} updatedAt="2 min" />
+        </div>
+      </div>
+
+      {/* Full-width movements table. */}
+      <div className="mt-4">
+        <MovementsTable movements={data.movements} />
       </div>
     </section>
   );
