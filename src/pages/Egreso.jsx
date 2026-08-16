@@ -21,8 +21,8 @@ const STATUS_COPY = {
   'no-route': () => 'No hay ruta al estante asignado para este producto',
 };
 
-// Design D7 — flow status kinds -> MUI Alert severities with the dark-legible
-// theme colors. no-route is WARNING (resolved open question, same rationale as
+// Design D7 — flow status kinds -> MUI Alert severities with theme colors.
+// no-route is WARNING (resolved open question, same rationale as
 // the inbound page): the product has an assigned rack, the route just cannot
 // be built; warning + the Spanish copy still read as a problem. no-stock is a
 // hard error.
@@ -64,14 +64,14 @@ export default function Egreso() {
           fontSize: '1.5rem',
           fontWeight: 600,
           letterSpacing: '-0.01em',
-          color: 'primary.main',
+          color: 'text.primary',
         }}
       >
         Egreso y picking
       </Typography>
       <SearchBox onSelect={handleSelect} />
       {status.kind !== 'idle' && (
-        // D7: MUI Alert with the dark-legible severity; role="status" keeps the
+        // D7: MUI Alert with the theme severity; role="status" keeps the
         // pre-MUI banner's non-blocking announcement semantics.
         <Alert severity={FLOW_SEVERITY[status.kind]} role="status" sx={{ mt: 2, maxWidth: '32rem' }}>
           {STATUS_COPY[status.kind](status.rack)}

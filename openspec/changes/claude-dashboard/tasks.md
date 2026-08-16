@@ -67,11 +67,11 @@ Tracker branch `feature/claude-dashboard` (from `14cd355`). PR #1 base = tracker
 
 ## Phase 5 (PR5): Pages Restyle
 
-- [ ] 5.1 **Ingreso/Egreso h1 → text.primary** — headings use `text.primary` (never `primary.main`); cards/forms keep light tokens. **AC**: h1 contrast ≥4.5:1; flows still work. **Files**: `src/pages/Ingreso.jsx`, `src/pages/Egreso.jsx`
+- [x] 5.1 **Ingreso/Egreso h1 → text.primary** — headings use `text.primary` (never `primary.main`); cards/forms keep light tokens. **AC**: h1 contrast ≥4.5:1; flows still work. **Files**: `src/pages/Ingreso.jsx`, `src/pages/Egreso.jsx`
 
-- [ ] 5.2 **NotFound restyle** — h1 `text.primary`, contained Button green-deep. **AC**: renders on unknown route; no dark hardcodes. **Files**: `src/pages/NotFound.jsx`
+- [x] 5.2 **NotFound restyle** — h1 `text.primary`, contained Button green-deep. **AC**: renders on unknown route; no dark hardcodes. **Files**: `src/pages/NotFound.jsx`
 
-- [ ] 5.3 **SearchBox SEARCH_STATUS retune + QrInput mono** — `SEARCH_STATUS` hexes → `success/warning/error` tokens; SKU fields `IBM Plex Mono`. **AC**: no dark-theme hex leftovers; mono codes render. **Files**: `src/components/SearchBox.jsx`, `src/components/QrInput.jsx`
+- [x] 5.3 **SearchBox SEARCH_STATUS retune + QrInput mono** — `SEARCH_STATUS` hexes → `success/warning/error` tokens; SKU fields `IBM Plex Mono`. **AC**: no dark-theme hex leftovers; mono codes render. **Files**: `src/components/SearchBox.jsx`, `src/components/QrInput.jsx`
 
 ## Phase 6 (PR6): Audit
 

@@ -24,8 +24,8 @@ const STATUS_COPY = {
   'no-storage': () => 'No hay espacio de almacenamiento disponible en este almacén',
 };
 
-// Design D7 — flow status kinds -> MUI Alert severities with the dark-legible
-// theme colors (error/warning/success). no-route is WARNING (resolved open
+// Design D7 — flow status kinds -> MUI Alert severities with theme colors
+// (error/warning/success). no-route is WARNING (resolved open
 // question): the rack exists and is reachable in principle, the route itself
 // just cannot be built, so error would overstate it; the warning color plus
 // the Spanish copy still read as a problem. no-storage is a hard error.
@@ -78,7 +78,7 @@ export default function Ingreso() {
           fontSize: '1.5rem',
           fontWeight: 600,
           letterSpacing: '-0.01em',
-          color: 'primary.main',
+          color: 'text.primary',
         }}
       >
         Ingreso de mercadería
@@ -88,7 +88,7 @@ export default function Ingreso() {
         Lectura de QR simulada: ingrese el código a mano o use «Código demo» (escaneo por cámara fuera de alcance).
       </Typography>
       {status.kind !== 'idle' && (
-        // D7: MUI Alert with the dark-legible severity; role="status" keeps the
+        // D7: MUI Alert with the theme severity; role="status" keeps the
         // pre-MUI banner's non-blocking announcement semantics.
         <Alert severity={FLOW_SEVERITY[status.kind]} role="status" sx={{ mt: 2, maxWidth: '32rem' }}>
           {STATUS_COPY[status.kind](status.rack)}
