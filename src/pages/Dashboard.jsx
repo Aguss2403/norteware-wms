@@ -37,8 +37,11 @@ export default function Dashboard() {
             <SearchIcon sx={{ fontSize: 14, color: 'text.secondary' }} aria-hidden="true" />
             <span>Buscar SKU o pallet…</span>
           </div>
+          {/* PR6 audit: ink tokens are confined to the Sidebar and the map card
+              (spec "map remains the only dark element"); the topbar avatar uses
+              the light brand-tint badge treatment instead of bg-ink. */}
           <span
-            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-ink font-display text-xs font-semibold text-lime"
+            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-brand/12 font-display text-xs font-semibold text-brand-deep"
             aria-hidden="true"
           >
             AG
