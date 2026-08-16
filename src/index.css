@@ -1,11 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #0d542b; --color-brand-dark: #e6edf3;
-  --color-brand-accent: #449b62; --color-bg: #0d1117; --color-surface: #161b22;
-  --color-border: #30363d; --color-text: #e6edf3; --color-text-muted: #8b949e;
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.4);
+  --color-brand: #2FAE58; --color-brand-deep: #1F8A44; --color-lime: #A8E063;
+  --color-ink: #0B140D; --color-ink-soft: #132018;
+  --color-card: #FFFFFF; --color-surface: #F4F7F3; --color-border: #E1E8E0;
+  --color-text: #10241A; --color-text-muted: #5C6B62;
+  --color-warning: #E8A93B; --color-danger: #E1554F; --color-info: #3B82C4;
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono-ui: "IBM Plex Mono", monospace;
+  --shadow-card: 0 1px 2px rgba(16, 36, 26, 0.04);
   --animate-cell-reveal: cellReveal 0.4s ease-out both;
 
   @keyframes cellReveal {
@@ -14,11 +18,11 @@
   }
 }
 
-:root { color-scheme: dark; }
+:root { color-scheme: light; }
 
 @layer base {
   body {
-    background: var(--color-bg);
+    background: var(--color-surface);
     color: var(--color-text);
     line-height: 1.5;
   }
