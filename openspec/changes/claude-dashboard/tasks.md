@@ -75,8 +75,8 @@ Tracker branch `feature/claude-dashboard` (from `14cd355`). PR #1 base = tracker
 
 ## Phase 6 (PR6): Audit
 
-- [ ] 6.1 **Contrast sweep** — verify white never rests on `#2FAE58`; buttons use `#1F8A44`; h1 `text.primary`; ink-text/ink-muted over ink surfaces ≥3:1 large. **AC**: ratios meet AA. **Files**: theme/pages/components as needed
+- [x] 6.1 **Contrast sweep** — verify white never rests on `#2FAE58`; buttons use `#1F8A44`; h1 `text.primary`; ink-text/ink-muted over ink surfaces ≥3:1 large. **AC**: ratios meet AA. **Files**: theme/pages/components as needed
 
-- [ ] 6.2 **Token/dark-hex sweep** — grep `--color-brand-dark/-brand-accent/-bg`, `#3fb950/#d29922/#f85149` and stray dark hexes; confirm ink only in Sidebar/map. **AC**: zero leftover references. **Files**: `src/index.css`, `src/components/*`
+- [x] 6.2 **Token/dark-hex sweep** — grep `--color-brand-dark/-brand-accent/-bg`, `#3fb950/#d29922/#f85149` and stray dark hexes; confirm ink only in Sidebar/map. **AC**: zero leftover references. **Files**: `src/index.css`, `src/components/*`
 
-- [ ] 6.3 **Build + smoke + copy byte-check** — `npm run build` (vite + validate-seeds), `npm run dev` full route/flow smoke, Spanish copy (labels/placeholders) UTF-8 intact; no diff on `src/domain/*`, `scripts/validate-seeds.mjs`, `src/data/{clients,layouts,skus}.js`, `src/data/warehouseVisuals.js`. **AC**: all success criteria green. **Files**: repo-wide audit
+- [x] 6.3 **Build + smoke + copy byte-check** — `npm run build` (vite + validate-seeds), `npm run dev` full route/flow smoke, Spanish copy (labels/placeholders) UTF-8 intact; no diff on `src/domain/*`, `scripts/validate-seeds.mjs`, `src/data/{clients,layouts,skus}.js`, `src/data/warehouseVisuals.js`. **AC**: all success criteria green. **Files**: repo-wide audit

@@ -33,12 +33,14 @@ const STATUS_COPY = {
   unlocated: () => 'Sin ubicación asignada',
 };
 
-// Design D5 — SEARCH_STATUS remapped to the light theme's status tokens
-// (success/warning/error) so the status rows follow theme palette state.
+// Design D5 + PR6 audit: SEARCH_STATUS maps to the ASSIGNED-LOCATION hues of
+// the mockup pills, deepened so small mono status text passes AA on white
+// (the theme MAIN hues measure 2.1-2.9:1 as small text, fails AA). Values
+// match the rack-status/KPI tiles: #1F8A44 ≈4.4:1, #96690F ≈4.9:1, #A83530 ≈6.5:1.
 const SEARCH_STATUS = {
-  located: 'success.main',
-  unlocated: 'warning.main',
-  'no-route': 'error.main',
+  located: '#1F8A44',
+  unlocated: '#96690F',
+  'no-route': '#A83530',
 };
 
 export default function SearchBox({ onSelect }) {
@@ -114,7 +116,7 @@ export default function SearchBox({ onSelect }) {
         })}
       </List>
       {noMatch && (
-        <Typography variant="body2" color="error" role="status">
+        <Typography variant="body2" sx={{ color: '#A83530' }} role="status">
           Sin resultados para “{query.trim()}”
         </Typography>
       )}
