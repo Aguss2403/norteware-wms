@@ -6,17 +6,36 @@ import { useClient } from '../context/ClientContext.jsx';
 import { warehouseVisuals } from '../data/warehouseVisuals.js';
 
 const REVEAL_STEP_MS = 150;
+// PR3 (design D5): local palette remapped to the ink/lime family so the map
+// reads as the dark hero card on the light canvas. The route projection,
+// orthogonal path, reveal animation, reduced-motion, and status text stay
+// untouched — only colors/labels around them change.
 const COLORS = {
-  background: '#0d1117',
-  surface: '#161b22',
-  border: '#30363d',
-  text: '#e6edf3',
-  muted: '#8b949e',
-  brand: '#0d542b',
-  route: '#449b62',
-  routeDark: '#08140d',
-  rack: '#14261d',
-  rackFree: '#101f16',
+  background: '#0B140D',
+  surface: '#132018',
+  border: 'rgba(255,255,255,.10)',
+  text: '#EAF6EE',
+  muted: '#7C9186',
+  brand: '#2FAE58',
+  route: '#A8E063',
+  routeDark: 'rgba(168,224,99,.18)',
+  rack: '#1d3527',
+  rackFree: '#16281e',
+  // Family extras (risk table: map hardcoded hexes -> COLORS family):
+  grid: 'rgba(255,255,255,.06)',
+  zoneGreen: '#164e32',
+  zoneAmber: '#59451d',
+  zoneAmberStroke: '#9a7a35',
+  lane: 'rgba(168,224,99,.14)',
+  laneDash: 'rgba(168,224,99,.22)',
+  aisle: '#61706a',
+  access: '#6a8a72',
+  door: '#8fa398',
+  dockStroke: '#6ac487',
+  dockGlyph: '#a8e4b9',
+  assignedStroke: '#A8E063',
+  assignedLabel: '#b9e5c5',
+  freeStroke: 'rgba(168,224,99,.35)',
 };
 
 function usePrefersReducedMotion() {
@@ -201,7 +220,7 @@ function orthogonalPath(points) {
 }
 
 function zoneFill(tone) {
-  return tone === 'amber' ? '#59451d' : '#164e32';
+  return tone === 'amber' ? COLORS.zoneAmber : COLORS.zoneGreen;
 }
 
 function ZoneLayer({ zones, mapId }) {
@@ -220,7 +239,7 @@ function ZoneLayer({ zones, mapId }) {
               rx="10"
               fill={zoneFill(zone.tone)}
               fillOpacity="0.2"
-              stroke={zone.tone === 'amber' ? '#9a7a35' : COLORS.brand}
+              stroke={zone.tone === 'amber' ? COLORS.zoneAmberStroke : COLORS.brand}
               strokeDasharray="5 7"
               strokeWidth="1.5"
             />
@@ -246,7 +265,7 @@ function AisleLayer({ aisles }) {
         return (
           <g key={aisle.id} aria-label={aisle.label} role="group">
             <title>{aisle.label}</title>
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#61706a" strokeDasharray="2 8" strokeWidth="1" />
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={COLORS.aisle} strokeDasharray="2 8" strokeWidth="1" />
             <text
               x={isHorizontal ? aisle.x : x1 + 8}
               y={isHorizontal ? aisle.y - 7 : aisle.y + 15}
@@ -276,8 +295,8 @@ function RouteLaneLayer({ routeLanes }) {
         return (
           <g key={lane.id} aria-label={lane.label} role="group">
             <title>{lane.label}</title>
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#1d3c29" strokeWidth="26" strokeLinecap="round" strokeOpacity="0.52" />
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#6a8a72" strokeWidth="1" strokeDasharray="2 10" strokeLinecap="round" strokeOpacity="0.7" />
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={COLORS.lane} strokeWidth="26" strokeLinecap="round" strokeOpacity="0.35" />
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={COLORS.laneDash} strokeWidth="1" strokeDasharray="2 10" strokeLinecap="round" strokeOpacity="0.7" />
           </g>
         );
       })}
@@ -288,10 +307,10 @@ function RouteLaneLayer({ routeLanes }) {
 function RackAccessMarker({ slot }) {
   const { bank } = slot;
   const side = bank.accessSide ?? 'bottom';
-  if (side === 'top') return <line x1={slot.center.x} y1={bank.y} x2={slot.center.x} y2={bank.y - 6} stroke="#6a8a72" strokeWidth="2" />;
-  if (side === 'left') return <line x1={bank.x} y1={slot.center.y} x2={bank.x - 6} y2={slot.center.y} stroke="#6a8a72" strokeWidth="2" />;
-  if (side === 'right') return <line x1={bank.x + bank.width} y1={slot.center.y} x2={bank.x + bank.width + 6} y2={slot.center.y} stroke="#6a8a72" strokeWidth="2" />;
-  return <line x1={slot.center.x} y1={bank.y + bank.height} x2={slot.center.x} y2={bank.y + bank.height + 6} stroke="#6a8a72" strokeWidth="2" />;
+  if (side === 'top') return <line x1={slot.center.x} y1={bank.y} x2={slot.center.x} y2={bank.y - 6} stroke={COLORS.access} strokeWidth="2" />;
+  if (side === 'left') return <line x1={bank.x} y1={slot.center.y} x2={bank.x - 6} y2={slot.center.y} stroke={COLORS.access} strokeWidth="2" />;
+  if (side === 'right') return <line x1={bank.x + bank.width} y1={slot.center.y} x2={bank.x + bank.width + 6} y2={slot.center.y} stroke={COLORS.access} strokeWidth="2" />;
+  return <line x1={slot.center.x} y1={bank.y + bank.height} x2={slot.center.x} y2={bank.y + bank.height + 6} stroke={COLORS.access} strokeWidth="2" />;
 }
 
 function RackLayer({ layout, profile }) {
@@ -329,12 +348,13 @@ function RackLayer({ layout, profile }) {
                 ? `${profile.rack.label} ${location.locationId} — ${rackLabel} — ${location.productTypeId}`
                 : `${profile.rack.label} ${location.locationId} — ${rackLabel}`;
               const slotStyle = assigned ? COLORS.rack : COLORS.rackFree;
-              const statusColor = assigned ? '#b9e5c5' : COLORS.route;
+              const statusColor = assigned ? COLORS.assignedLabel : COLORS.muted;
+              const slotStroke = assigned ? COLORS.assignedStroke : COLORS.freeStroke;
               return (
                 <g key={location.locationId} aria-label={title} role="group">
                    <title>{title}</title>
-                   <rect x={slot.x + 3} y={slot.y + 3} width={slot.width - 6} height={slot.height - 6} fill={slotStyle} stroke={assigned ? '#3fb950' : COLORS.route} strokeWidth="1.5" />
-                   <rect x={slot.x + 3} y={slot.y + 3} width="4" height={slot.height - 6} fill={assigned ? '#3fb950' : COLORS.route} />
+                   <rect x={slot.x + 3} y={slot.y + 3} width={slot.width - 6} height={slot.height - 6} fill={slotStyle} stroke={slotStroke} strokeWidth="1.5" />
+                   <rect x={slot.x + 3} y={slot.y + 3} width="4" height={slot.height - 6} fill={assigned ? COLORS.assignedStroke : 'none'} />
                    <RackAccessMarker slot={slot} />
                    <text x={slot.center.x} y={slot.center.y - 6} fill={COLORS.text} fontSize="8" fontWeight="700" textAnchor="middle">
                     {location.locationId}
@@ -372,10 +392,10 @@ function DockLayer({ layout, profile }) {
   return (
     <g aria-label={`${dock.label} de recepción`} role="group">
        <title>{`${dock.label} de recepción`}</title>
-       <rect x={point.x - 35} y={point.y - 30} width="70" height="60" rx="6" fill={COLORS.brand} fillOpacity="0.9" stroke="#6ac487" strokeWidth="2" />
-       <path d={`M ${point.x - 20} ${point.y - 13} H ${point.x + 20} M ${point.x - 20} ${point.y} H ${point.x + 20} M ${point.x - 20} ${point.y + 13} H ${point.x + 20}`} stroke="#a8e4b9" strokeWidth="2" />
-       <path d={`M ${point.x} ${point.y + 30} V ${entrance.y}`} stroke="#6a8a72" strokeWidth="3" strokeDasharray="3 5" />
-       <circle cx={entrance.x} cy={entrance.y} r="5" fill={COLORS.routeDark} stroke="#a8e4b9" strokeWidth="2" />
+       <rect x={point.x - 35} y={point.y - 30} width="70" height="60" rx="6" fill={COLORS.brand} fillOpacity="0.9" stroke={COLORS.dockStroke} strokeWidth="2" />
+       <path d={`M ${point.x - 20} ${point.y - 13} H ${point.x + 20} M ${point.x - 20} ${point.y} H ${point.x + 20} M ${point.x - 20} ${point.y + 13} H ${point.x + 20}`} stroke={COLORS.dockGlyph} strokeWidth="2" />
+       <path d={`M ${point.x} ${point.y + 30} V ${entrance.y}`} stroke={COLORS.access} strokeWidth="3" strokeDasharray="3 5" />
+       <circle cx={entrance.x} cy={entrance.y} r="5" fill={COLORS.routeDark} stroke={COLORS.dockGlyph} strokeWidth="2" />
        <text x={point.x + dock.labelDx} y={point.y + dock.labelDy} fill={COLORS.text} fontSize="13" fontWeight="700" letterSpacing="1">
         {dock.label}
       </text>
@@ -389,7 +409,7 @@ function DoorLayer({ doors }) {
       {doors.map((door) => (
         <g key={door.id} aria-label={door.label} role="group">
           <title>{door.label}</title>
-          <rect x={door.x} y={door.y} width={door.width} height={door.height} rx="3" fill={COLORS.surface} stroke="#9aa4ad" strokeWidth="2" />
+          <rect x={door.x} y={door.y} width={door.width} height={door.height} rx="3" fill={COLORS.surface} stroke={COLORS.door} strokeWidth="2" />
           <path d={`M ${door.x + 10} ${door.y + door.height / 2} H ${door.x + door.width - 10}`} stroke={COLORS.muted} strokeDasharray="4 4" />
           <text x={door.x + door.width / 2} y={door.y + door.height + 15} fill={COLORS.muted} fontSize="10" fontWeight="700" textAnchor="middle">
             {door.label}
@@ -409,8 +429,8 @@ function CueLayer({ cues }) {
             <>
               <rect x="-24" y="-10" width="32" height="19" rx="2" fill="#768391" />
               <path d="M 8 -7 H 19 L 25 1 V 9 H 8 Z" fill="#aeb8c2" />
-              <circle cx="-14" cy="11" r="4" fill="#0d1117" stroke="#aeb8c2" strokeWidth="2" />
-              <circle cx="17" cy="11" r="4" fill="#0d1117" stroke="#aeb8c2" strokeWidth="2" />
+              <circle cx="-14" cy="11" r="4" fill={COLORS.background} stroke="#aeb8c2" strokeWidth="2" />
+              <circle cx="17" cy="11" r="4" fill={COLORS.background} stroke="#aeb8c2" strokeWidth="2" />
             </>
           )}
           {cue.kind === 'forklift' && (
@@ -418,8 +438,8 @@ function CueLayer({ cues }) {
               <rect x="-15" y="-14" width="23" height="21" rx="2" fill="#c48a3a" />
               <rect x="-11" y="-23" width="13" height="10" fill="#f0b85c" />
               <path d="M 8 -20 V 10 M 8 7 H 26" stroke="#f0b85c" strokeWidth="3" />
-              <circle cx="-9" cy="10" r="4" fill="#0d1117" stroke="#f0b85c" strokeWidth="2" />
-              <circle cx="9" cy="10" r="4" fill="#0d1117" stroke="#f0b85c" strokeWidth="2" />
+              <circle cx="-9" cy="10" r="4" fill={COLORS.background} stroke="#f0b85c" strokeWidth="2" />
+              <circle cx="9" cy="10" r="4" fill={COLORS.background} stroke="#f0b85c" strokeWidth="2" />
             </>
           )}
           {cue.kind === 'pallet' && (
@@ -469,22 +489,51 @@ function RouteLayer({ points, finished }) {
 }
 
 function Legend() {
+  // PR3: legend inside the dark hero card, swatches bound to the local COLORS
+  // family. Seeds only yield free/occupied racks (design D4), so the third
+  // entry reads "ocupado" — "lleno" is reserved for the inventory module.
   const items = [
-    ['bg-brand', 'MUELLE'],
-    ['bg-[#14261d]', 'ESTANTE · ASIGNADO'],
-    ['bg-[#101f16]', 'ESTANTE · LIBRE'],
-    ['border border-[#61706a]', 'PASILLO · CIRCULACIÓN'],
-    ['border border-[#9aa4ad]', 'PUERTA'],
-    ['bg-[#449b62]', 'RUTA'],
+    [COLORS.route, 'Ruta activa'],
+    [COLORS.rack, 'Rack ocupado'],
+    [COLORS.rackFree, 'Rack libre'],
   ];
   return (
-    <ul className="mx-0 mb-0 mt-[0.7rem] flex list-none flex-wrap gap-x-[1.1rem] gap-y-[0.4rem] p-0 text-[0.8rem] text-text-muted" aria-label="Leyenda del plano">
-      {items.map(([symbol, label]) => (
-        <li key={label} className="flex items-center gap-[0.35rem] whitespace-nowrap">
-          <span className={`inline-block size-[0.8rem] rounded-sm ${symbol}`} aria-hidden="true" /> {label}
+    <ul className="mt-[14px] flex list-none flex-wrap gap-x-[14px] gap-y-[6px] p-0 text-[11px] text-ink-muted" aria-label="Leyenda del plano">
+      {items.map(([color, label]) => (
+        <li key={label} className="flex items-center gap-[5px] whitespace-nowrap">
+          <span className="inline-block size-[9px] rounded-[2px]" style={{ background: color }} aria-hidden="true" /> {label}
         </li>
       ))}
     </ul>
+  );
+}
+
+function RouteChip({ label, value, accent = false }) {
+  // PR3: dark hero-card chip (mockup .chip). Values read live from
+  // route.distance / route.steps — no hardcoded numbers.
+  return (
+    <span className="flex items-center gap-1.5 whitespace-nowrap rounded-[9px] border border-white/[0.08] bg-white/[0.06] px-[11px] py-[7px] text-[11.5px] text-[#C9D6CE]">
+      {label}
+      <b className="font-mono-ui font-medium" style={{ color: accent ? COLORS.route : COLORS.text }}>
+        {value}
+      </b>
+    </span>
+  );
+}
+
+function MapShell({ headerTag, children }) {
+  // PR3: the dark hero card (ink bg, rounded, title + active route tag) that
+  // wraps the floorplan in every surface (Dashboard, /mapa, Ingreso, Egreso).
+  return (
+    <div className="mt-6 overflow-hidden rounded-2xl bg-ink shadow-card">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-5 pb-1 pt-4">
+        <h3 className="font-display text-[15px] font-semibold tracking-tight text-ink-text">
+          Mapa del depósito · en vivo
+        </h3>
+        <span className="text-[11px] font-medium text-ink-muted">{headerTag}</span>
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -530,10 +579,42 @@ export default function WarehouseMap({ route = null }) {
       ? 'Calculando ruta…'
       : 'Sin ruta activa';
 
+  // MapShell header tag — truthful origin/destination derived from the route
+  // path endpoints (dock -> rack), no invented data.
+  const activeTag = hasRoute
+    ? (() => {
+        const startId = route.path[0];
+        const endId = route.path[route.path.length - 1];
+        const startLocation = layout.index.get(startId);
+        const endLocation = layout.index.get(endId);
+        const origin = startId === layout.dockId || startLocation?.type === 'dock' ? 'Muelle' : startId;
+        const destination = endLocation?.type === 'rack' ? `Rack ${endId}` : endId;
+        return `Ruta activa: ${origin} → ${destination}`;
+      })()
+    : 'Sin ruta activa';
+
+  const chips = hasRenderableRoute && finished ? (
+    <div className="mt-3 flex flex-wrap gap-2">
+      <RouteChip label="Distancia" value={`${route.distance} tramos`} />
+      <RouteChip label="Pasos" value={String(route.steps)} />
+      <RouteChip label="Estado" value="Óptima" accent />
+    </div>
+  ) : hasRoute ? (
+    <div className="mt-3 flex flex-wrap gap-2">
+      <RouteChip label="Estado" value="Calculando…" />
+    </div>
+  ) : (
+    <div className="mt-3 flex flex-wrap gap-2">
+      <span className="flex items-center whitespace-nowrap rounded-[9px] border border-white/[0.08] bg-white/[0.06] px-[11px] py-[7px] text-[11.5px] text-[#C9D6CE]">
+        Sin ruta activa
+      </span>
+    </div>
+  );
+
   return (
-    <div className="mt-6">
-      <div className="max-w-[74rem] overflow-x-auto rounded-lg border border-border bg-border p-[0.375rem] shadow-card">
-        <div className="min-w-[48rem]">
+    <MapShell headerTag={activeTag}>
+      <div className="relative px-4 pb-4">
+        <div className="min-w-[48rem] overflow-x-auto">
           <svg
             className="block h-auto w-full"
             viewBox={profile.viewBox}
@@ -545,14 +626,8 @@ export default function WarehouseMap({ route = null }) {
             <desc id={descriptionId}>
                Mapa operativo con seis zonas, estantes, corredores, muelles y puertas del almacén activo de {client.name}. La ruta se calcula desde la entrada del muelle hasta el acceso del estante destino.
             </desc>
-            <defs>
-              <pattern id={`${mapId}-floor`} width="32" height="32" patternUnits="userSpaceOnUse">
-                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#263039" strokeWidth="1" strokeOpacity="0.55" />
-              </pattern>
-            </defs>
             <rect width="1200" height="680" fill={COLORS.background} />
             <rect x="24" y="24" width="1152" height="632" rx="16" fill={COLORS.surface} stroke={COLORS.border} strokeWidth="2" />
-            <rect x="42" y="78" width="1116" height="542" rx="12" fill={`url(#${mapId}-floor)`} />
             <text x="52" y="52" fill={COLORS.muted} fontSize="11" fontWeight="700" letterSpacing="2">PLANO OPERATIVO</text>
              <text x="1150" y="52" fill={COLORS.text} fontSize="15" fontWeight="700" textAnchor="end">{client.name}</text>
              <ZoneLayer zones={profile.zones} mapId={mapId} />
@@ -565,11 +640,24 @@ export default function WarehouseMap({ route = null }) {
             <RouteLayer points={visibleRoute} finished={finished} />
           </svg>
         </div>
+        {/* Dotted 16px background grid (mockup .map-grid): covers the whole map
+            area card-wide, pointer-events-none so it never blocks the SVG. */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(${COLORS.grid} 1px, transparent 1px)`,
+            backgroundSize: '16px 16px',
+          }}
+          aria-hidden="true"
+        />
+        <div className="relative">
+          {chips}
+          <Legend />
+          <p className="mx-0 mb-0 mt-[0.6rem] text-sm text-ink-muted" role="status" aria-live="polite">
+            {status}
+          </p>
+        </div>
       </div>
-      <Legend />
-      <p className="mx-0 mb-0 mt-[0.6rem] text-sm text-text-muted" role="status" aria-live="polite">
-        {status}
-      </p>
-    </div>
+    </MapShell>
   );
 }

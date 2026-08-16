@@ -1,8 +1,8 @@
 // Dedicated /mapa page (spec: app-shell Routing + Map page reachable, design
-// D7). Renders the existing <WarehouseMap /> full-width inside a dark ink card
-// with a back CTA. No route prop is passed — the page shows the floorplan in
-// its resting state. The map's own internals (colors, chips, legend shell)
-// are restyled in PR3; this page only provides the ink frame and header.
+// D7). PR2 added the page-level ink frame; PR3 moved the dark hero card INTO
+// <WarehouseMap /> (MapShell), so this page only provides the h1 + back CTA
+// and renders the map full-width — identical presentation to the Dashboard.
+// No route prop is passed — the page shows the floorplan in its resting state.
 
 import { Link } from 'react-router-dom';
 import Button from '@mui/material/Button';
@@ -32,9 +32,9 @@ export default function WarehouseMapPage() {
           Volver al dashboard
         </Button>
       </div>
-      <div className="overflow-hidden rounded-2xl bg-ink p-1.5 shadow-card">
-        <WarehouseMap />
-      </div>
+      {/* PR3: MapShell (inside WarehouseMap) is the dark hero card now —
+          no extra frame here, so /mapa and Dashboard render the same card. */}
+      <WarehouseMap />
     </section>
   );
 }
