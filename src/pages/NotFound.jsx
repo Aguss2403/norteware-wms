@@ -1,7 +1,8 @@
-// Not-found page (spec: app-shell, design D7). Themed 404: MUI Paper +
-// Typography and a contained Button that links back to the dashboard. The old
-// Tailwind .entry-link class (white text on brand green) is gone — the Button
-// uses the theme's primary contrastText (light text on the muted brand green).
+// Not-found page (spec: app-shell, design D7). Light themed 404: MUI Paper
+// card (white on the light canvas, hairline border, soft shadow) with a
+// Typography h1 in text.primary and a contained Button linking back to the
+// dashboard. The Button rests on green-deep via the theme's contained-primary
+// variant (white-on-#2FAE58 fails AA at ~2.3:1; white-on-#1F8A44 passes).
 
 import { Link } from 'react-router-dom';
 import Button from '@mui/material/Button';
@@ -11,7 +12,7 @@ import Typography from '@mui/material/Typography';
 export default function NotFound() {
   return (
     <section className="mx-auto max-w-5xl">
-      <Paper variant="outlined" sx={{ px: 3, py: 2.5, maxWidth: '30rem' }}>
+      <Paper variant="outlined" sx={{ px: 3, py: 2.5, maxWidth: '30rem', boxShadow: '0 1px 2px rgba(16,36,26,.04)' }}>
         <Typography
           component="h1"
           sx={{
@@ -19,7 +20,7 @@ export default function NotFound() {
             fontSize: '1.5rem',
             fontWeight: 600,
             letterSpacing: '-0.01em',
-            color: 'primary.main',
+            color: 'text.primary',
           }}
         >
           Página no encontrada
