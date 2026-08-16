@@ -49,6 +49,15 @@ const theme = createTheme({
             '&:hover': { backgroundColor: '#177A3B' },
           },
         },
+        // Outlined primary text rests on green-deep too: primary.main (#2FAE58)
+        // as small text on white is ~2.9:1 (fails AA); #1F8A44 text is ~4.4:1.
+        {
+          props: { variant: 'outlined', color: 'primary' },
+          style: {
+            color: '#1F8A44',
+            '&:hover': { backgroundColor: 'rgba(47, 174, 88, 0.08)' },
+          },
+        },
       ],
       styleOverrides: {
         root: { textTransform: 'none', borderRadius: 10 },
