@@ -12,8 +12,9 @@
 //     page (spec: Product selection / Pick route display).
 //
 // Design D5: MUI TextField + custom List of ListItemButtons; SEARCH_STATUS is
-// remapped to dark-legible hexes (D1 error/warning/success); searchSkus and
-// rackStatusFor are reused unchanged, so empty-query browse parity holds.
+// remapped to the light theme's state tokens (success/warning/error); searchSkus
+// and rackStatusFor are reused unchanged, so empty-query browse parity holds.
+// SKU/status codes render in IBM Plex Mono (design: mono codes).
 
 import { useState } from 'react';
 import List from '@mui/material/List';
@@ -32,11 +33,12 @@ const STATUS_COPY = {
   unlocated: () => 'Sin ubicación asignada',
 };
 
-// Design D5 — SEARCH_STATUS remapped to the dark theme's status hexes.
+// Design D5 — SEARCH_STATUS remapped to the light theme's status tokens
+// (success/warning/error) so the status rows follow theme palette state.
 const SEARCH_STATUS = {
-  located: '#3fb950',
-  unlocated: '#d29922',
-  'no-route': '#f85149',
+  located: 'success.main',
+  unlocated: 'warning.main',
+  'no-route': 'error.main',
 };
 
 export default function SearchBox({ onSelect }) {
@@ -47,7 +49,7 @@ export default function SearchBox({ onSelect }) {
   const noMatch = query.trim() !== '' && results.length === 0;
 
   return (
-    <div className="mt-4 flex max-w-[32rem] flex-col gap-2 rounded-lg border border-border bg-surface px-5 py-4 shadow-card">
+    <div className="mt-4 flex max-w-[32rem] flex-col gap-2 rounded-2xl border border-border bg-card px-5 py-4 shadow-card">
       <TextField
         id="product-search"
         type="search"
@@ -55,6 +57,7 @@ export default function SearchBox({ onSelect }) {
         placeholder="Código o nombre (Ej: lim, SKU-00)"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
+        InputProps={{ sx: { fontFamily: '"IBM Plex Mono", monospace' } }}
       />
       <List
         aria-label="Resultados de búsqueda"
@@ -91,11 +94,18 @@ export default function SearchBox({ onSelect }) {
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
                     {sku.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ fontFamily: '"IBM Plex Mono", monospace', fontWeight: 500 }}
+                  >
                     {sku.skuId}
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: SEARCH_STATUS[status.kind] }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: SEARCH_STATUS[status.kind], fontFamily: '"IBM Plex Mono", monospace' }}
+                >
                   {STATUS_COPY[status.kind](status.rackId)}
                 </Typography>
               </ListItemButton>

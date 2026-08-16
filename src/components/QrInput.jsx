@@ -9,8 +9,8 @@
 //                         owned by the parent page so the validation and the
 //                         receiving flow share a single source of truth.
 //
-// Design D1b: TextField uses the theme default (outlined, small); the flow
-// error renders as an MUI Alert with the dark-legible error color.
+// Design D1b: the SKU field renders its value in IBM Plex Mono via InputProps;
+// the flow error renders as an MUI Alert with the theme's error color.
 
 import { useState } from 'react';
 import TextField from '@mui/material/TextField';
@@ -46,7 +46,7 @@ export default function QrInput({ onSubmit, error = null }) {
 
   return (
     <form
-      className="mt-4 flex max-w-[32rem] flex-col gap-3 rounded-lg border border-border bg-surface px-5 py-4 shadow-card"
+      className="mt-4 flex max-w-[32rem] flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-card"
       onSubmit={handleSubmit}
     >
       <TextField
@@ -58,6 +58,7 @@ export default function QrInput({ onSubmit, error = null }) {
           setCode(event.target.value);
           setInvalid(false);
         }}
+        InputProps={{ sx: { fontFamily: '"IBM Plex Mono", monospace', fontWeight: 500 } }}
       />
       <div className="flex gap-2 max-sm:flex-wrap">
         <Button type="submit" variant="contained">
