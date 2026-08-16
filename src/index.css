@@ -3,6 +3,7 @@
 @theme {
   --color-brand: #2FAE58; --color-brand-deep: #1F8A44; --color-lime: #A8E063;
   --color-ink: #0B140D; --color-ink-soft: #132018;
+  --color-ink-text: #E9F2EC; --color-ink-muted: #7C9186;
   --color-card: #FFFFFF; --color-surface: #F4F7F3; --color-border: #E1E8E0;
   --color-text: #10241A; --color-text-muted: #5C6B62;
   --color-warning: #E8A93B; --color-danger: #E1554F; --color-info: #3B82C4;
