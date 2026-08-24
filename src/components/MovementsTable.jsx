@@ -54,31 +54,39 @@ export default function MovementsTable({ movements = [] }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {movements.map((movement) => (
-              <TableRow key={`${movement.skuId}-${movement.time}`} hover>
-                <TableCell sx={{ ...MONO_CELL, px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.primary' }}>
-                  {movement.skuId}
-                </TableCell>
-                <TableCell sx={{ px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.primary' }}>
-                  {movement.productName}
-                </TableCell>
-                <TableCell sx={{ ...MONO_CELL, px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.primary' }}>
-                  {movement.location}
-                </TableCell>
-                <TableCell sx={{ px: '1.25rem', py: '0.6875rem', borderColor: 'divider' }}>
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                      TYPE_BADGE[movement.type] ?? TYPE_BADGE.ingreso
-                    }`}
-                  >
-                    {movement.type === 'ingreso' ? 'Ingreso' : 'Egreso'}
-                  </span>
-                </TableCell>
-                <TableCell sx={{ px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.secondary' }}>
-                  {movement.time}
+            {movements.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} sx={{ px: '1.25rem', py: '1.5rem', color: 'text.secondary' }}>
+                  Sin movimientos todavía. Registrá un ingreso o un egreso para ver el historial.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              movements.map((movement) => (
+                <TableRow key={`${movement.skuId}-${movement.time}`} hover>
+                  <TableCell sx={{ ...MONO_CELL, px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.primary' }}>
+                    {movement.skuId}
+                  </TableCell>
+                  <TableCell sx={{ px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.primary' }}>
+                    {movement.productName}
+                  </TableCell>
+                  <TableCell sx={{ ...MONO_CELL, px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.primary' }}>
+                    {movement.location}
+                  </TableCell>
+                  <TableCell sx={{ px: '1.25rem', py: '0.6875rem', borderColor: 'divider' }}>
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        TYPE_BADGE[movement.type] ?? TYPE_BADGE.ingreso
+                      }`}
+                    >
+                      {movement.type === 'ingreso' ? 'Ingreso' : 'Egreso'}
+                    </span>
+                  </TableCell>
+                  <TableCell sx={{ px: '1.25rem', py: '0.6875rem', borderColor: 'divider', color: 'text.secondary' }}>
+                    {movement.time}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

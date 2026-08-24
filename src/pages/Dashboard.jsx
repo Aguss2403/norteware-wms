@@ -6,19 +6,32 @@
 // picking/movements are labeled mocks reusing seeded ids.
 
 import { useMemo } from 'react';
-import SearchIcon from '@mui/icons-material/Search';
 import { useClient } from '../context/ClientContext.jsx';
 import { buildDashboardData } from '../data/dashboard.js';
 import WarehouseMap from '../components/WarehouseMap.jsx';
 import KpiCard from '../components/KpiCard.jsx';
 import RackStatusList from '../components/RackStatusList.jsx';
 import MovementsTable from '../components/MovementsTable.jsx';
+import DashboardSearch from '../components/DashboardSearch.jsx';
+
+function relativeTime(iso) {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'ahora';
+  if (minutes < 60) return `${minutes} min`;
+  return `${Math.floor(minutes / 60)} h`;
+}
 
 export default function Dashboard() {
-  const { client, layout } = useClient();
-  const data = useMemo(() => buildDashboardData({ client, layout }), [client, layout]);
+  const { client, layout, stock, movements } = useClient();
+  const data = useMemo(
+    () => buildDashboardData({ client, layout, stock, movements }),
+    [client, layout, stock, movements]
+  );
 
   const dateLabel = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+  const updatedAt = movements.length > 0 ? relativeTime(movements[0].createdAt) : '—';
 
   return (
     <section className="mx-auto max-w-[74rem]">
@@ -26,17 +39,12 @@ export default function Dashboard() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-[22px] font-semibold tracking-tight text-text">
-            Hola, Agustín 👋
+            Hola 👋
           </h1>
           <p className="mt-1 text-[13px] text-text-muted">Así está el depósito hoy, {dateLabel}</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Presentational search affordance (mockup .search); real search
-              UX stays out of scope for this slice. */}
-          <div className="flex items-center gap-2 rounded-[10px] border border-border bg-card px-3 py-2 text-[13px] text-text-muted">
-            <SearchIcon sx={{ fontSize: 14, color: 'text.secondary' }} aria-hidden="true" />
-            <span>Buscar SKU o pallet…</span>
-          </div>
+          <DashboardSearch />
           {/* PR6 audit: ink tokens are confined to the Sidebar and the map card
               (spec "map remains the only dark element"); the topbar avatar uses
               the light brand-tint badge treatment instead of bg-ink. */}
@@ -62,7 +70,7 @@ export default function Dashboard() {
       <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[1.55fr_1fr]">
         <WarehouseMap />
         <div className="mt-6">
-          <RackStatusList racks={data.racks} updatedAt="2 min" />
+          <RackStatusList racks={data.racks} updatedAt={updatedAt} />
         </div>
       </div>
 

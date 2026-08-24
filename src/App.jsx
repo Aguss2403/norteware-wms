@@ -1,27 +1,45 @@
+// App router — two areas, one deploy:
+//   Marketing (site promocional, sin sidebar): / (Landing), /nosotros.
+//   Producto (WMS, con sidebar): /app/* + pantalla de entrada /app/ingresar.
+// NotFound queda fuera de ambos layouts (página genérica).
+
 import { Routes, Route } from 'react-router-dom';
-import Sidebar from './components/Sidebar.jsx';
+import MarketingLayout from './layouts/MarketingLayout.jsx';
+import AppLayout from './layouts/AppLayout.jsx';
+import Landing from './pages/Landing.jsx';
+import Nosotros from './pages/Nosotros.jsx';
+import Ingresar from './pages/Ingresar.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Ingreso from './pages/Ingreso.jsx';
 import Egreso from './pages/Egreso.jsx';
 import WarehouseMapPage from './pages/WarehouseMapPage.jsx';
+import Inventario from './pages/Inventario.jsx';
+import Trazabilidad from './pages/Trazabilidad.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
   return (
-    // Flex-row shell (spec: app-shell Shell layout, design D3): fixed 240px
-    // Sidebar stays mounted outside <Routes />, so it persists on every route
-    // including the NotFound fallback; main scrolls on the light canvas.
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 px-6 pb-10 pt-7 max-sm:px-4 max-sm:pb-8 max-sm:pt-5">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/ingreso" element={<Ingreso />} />
-          <Route path="/egreso" element={<Egreso />} />
-          <Route path="/mapa" element={<WarehouseMapPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-    </div>
+    <Routes>
+      {/* Sitio promocional */}
+      <Route element={<MarketingLayout />}>
+        <Route index element={<Landing />} />
+        <Route path="nosotros" element={<Nosotros />} />
+      </Route>
+
+      {/* Pantalla de entrada (sin sidebar) */}
+      <Route path="app/ingresar" element={<Ingresar />} />
+
+      {/* Producto WMS (con sidebar) */}
+      <Route path="app" element={<AppLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="ingreso" element={<Ingreso />} />
+        <Route path="egreso" element={<Egreso />} />
+        <Route path="mapa" element={<WarehouseMapPage />} />
+        <Route path="inventario" element={<Inventario />} />
+        <Route path="trazabilidad" element={<Trazabilidad />} />
+      </Route>
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }

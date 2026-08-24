@@ -26,8 +26,8 @@ export default function NotFound() {
           Página no encontrada
         </Typography>
         <Typography sx={{ mb: 2 }}>La dirección solicitada no existe.</Typography>
-        <Button component={Link} to="/" variant="contained">
-          Volver al panel de control
+        <Button component={Link} to="/app" variant="contained">
+          Ir al panel de control
         </Button>
       </Paper>
     </section>

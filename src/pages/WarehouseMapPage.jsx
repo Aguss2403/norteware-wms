@@ -24,7 +24,7 @@ export default function WarehouseMapPage() {
         </Typography>
         <Button
           component={Link}
-          to="/"
+          to="/app"
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ color: 'text.primary', borderColor: 'divider' }}

@@ -13,13 +13,14 @@ import { skus } from '../data/skus.js';
 import { lookupSku } from '../domain/model.js';
 import { resolveInboundFlow } from '../domain/inbound.js';
 import QrInput from '../components/QrInput.jsx';
+import OperatorSelect, { OPERATORS } from '../components/OperatorSelect.jsx';
 import WarehouseMap from '../components/WarehouseMap.jsx';
 
 // Design D7 — status copy stays VERBATIM (Spanish, byte-identical to the
 // pre-MUI page); only the banner chrome changes, to a MUI Alert.
 const STATUS_COPY = {
-  assigned: (rack) => `Ruta al estante asignado ${rack.locationId} (no se asigna ubicación)`,
-  'auto-assigned': (rack) => `Ubicación asignada: estante ${rack.locationId}`,
+  assigned: (rack, qty) => `Ruta al estante ${rack.locationId} · +${qty} ${qty === 1 ? 'unidad' : 'unidades'} (ya asignado)`,
+  'auto-assigned': (rack, qty) => `Ubicación asignada: estante ${rack.locationId} · +${qty} ${qty === 1 ? 'unidad' : 'unidades'}`,
   'no-route': () => 'No hay ruta al estante del tipo asignado para este SKU',
   'no-storage': () => 'No hay espacio de almacenamiento disponible en este almacén',
 };
@@ -37,12 +38,13 @@ const FLOW_SEVERITY = {
 };
 
 export default function Ingreso() {
-  const { layout } = useClient();
+  const { layout, recordInbound } = useClient();
   const [route, setRoute] = useState(null);
   const [status, setStatus] = useState({ kind: 'idle' });
   const [error, setError] = useState(null);
+  const [operator, setOperator] = useState(OPERATORS[0]);
 
-  function handleSubmit(rawCode) {
+  function handleSubmit(rawCode, qty = 1) {
     const code = rawCode.trim();
     setError(null);
     setRoute(null); // clear previous route before starting a new flow
@@ -59,7 +61,9 @@ export default function Ingreso() {
       setStatus({ kind: result.kind });
       return;
     }
-    setStatus({ kind: result.kind, rack: result.rack });
+    // Persist: assign the rack (if auto-assigned) and add `qty` units to stock.
+    recordInbound(sku, result.rack.locationId, qty, operator);
+    setStatus({ kind: result.kind, rack: result.rack, qty });
     setRoute(result.route);
   }
 
@@ -83,6 +87,9 @@ export default function Ingreso() {
       >
         Ingreso de mercadería
       </Typography>
+      <div className="mb-4 max-w-[32rem]">
+        <OperatorSelect value={operator} onChange={setOperator} />
+      </div>
       <QrInput onSubmit={handleSubmit} error={error} />
       <Typography color="text.secondary" sx={{ mt: 0.6, maxWidth: '32rem', fontSize: '0.8rem' }}>
         Lectura de QR simulada: ingrese el código a mano o use «Código demo» (escaneo por cámara fuera de alcance).
@@ -91,7 +98,7 @@ export default function Ingreso() {
         // D7: MUI Alert with the theme severity; role="status" keeps the
         // pre-MUI banner's non-blocking announcement semantics.
         <Alert severity={FLOW_SEVERITY[status.kind]} role="status" sx={{ mt: 2, maxWidth: '32rem' }}>
-          {STATUS_COPY[status.kind](status.rack)}
+          {STATUS_COPY[status.kind](status.rack, status.qty)}
         </Alert>
       )}
       <WarehouseMap route={route} />

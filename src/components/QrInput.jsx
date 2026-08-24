@@ -1,27 +1,32 @@
 // Simulated QR input for the inbound flow (spec: Simulated QR input).
 // Camera scanning is a stretch MAY behind an optional flag and is OUT of
-// scope; the text field (plus demo button) is the default input path.
+// scope; the text field + quantity + demo codes is the default input path.
 //
 // Props:
-//   onSubmit(code) — called with the trimmed code when the user submits a
-//                    non-empty value or triggers the demo scan.
-//   error (string|null) — flow-level error (e.g. unknown SKU) shown inline;
-//                         owned by the parent page so the validation and the
-//                         receiving flow share a single source of truth.
+//   onSubmit(code, qty) — called with the trimmed code and the received
+//                        quantity when the user submits or taps a demo code.
+//   error (string|null) — flow-level error (e.g. unknown SKU) shown inline.
 //
-// Design D1b: the SKU field renders its value in IBM Plex Mono via InputProps;
-// the flow error renders as an MUI Alert with the theme's error color.
+// Demo codes: every seeded SKU is one tap away (they cover all 5 product
+// types), so the presenter can exercise auto-assign and assigned-route flows.
 
 import { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import { skus } from '../data/skus.js';
 
-const DEMO_CODE = 'SKU-001'; // seeded sample: Jugo de naranja (unassigned type -> auto-assign)
+const DEMO_SKUS = skus;
 
 export default function QrInput({ onSubmit, error = null }) {
   const [code, setCode] = useState('');
+  const [qty, setQty] = useState('1');
   const [invalid, setInvalid] = useState(false);
+
+  function parsedQty() {
+    const n = Number.parseInt(qty, 10);
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  }
 
   function submit(value) {
     const trimmed = value.trim();
@@ -30,7 +35,7 @@ export default function QrInput({ onSubmit, error = null }) {
       return;
     }
     setInvalid(false);
-    onSubmit(trimmed);
+    onSubmit(trimmed, parsedQty());
   }
 
   function handleSubmit(event) {
@@ -38,10 +43,10 @@ export default function QrInput({ onSubmit, error = null }) {
     submit(code);
   }
 
-  function handleDemo() {
-    setCode(DEMO_CODE);
+  function handleDemo(skuId) {
+    setCode(skuId);
     setInvalid(false);
-    onSubmit(DEMO_CODE);
+    onSubmit(skuId, parsedQty());
   }
 
   return (
@@ -60,14 +65,43 @@ export default function QrInput({ onSubmit, error = null }) {
         }}
         InputProps={{ sx: { fontFamily: '"IBM Plex Mono", monospace', fontWeight: 500 } }}
       />
-      <div className="flex gap-2 max-sm:flex-wrap">
-        <Button type="submit" variant="contained">
+      <div className="flex items-end gap-2 max-sm:flex-wrap">
+        <TextField
+          id="qr-qty"
+          label="Cantidad"
+          type="number"
+          size="small"
+          value={qty}
+          onChange={(event) => setQty(event.target.value)}
+          InputProps={{
+            inputProps: { min: 1, style: { fontFamily: '"IBM Plex Mono", monospace' } },
+            sx: { maxWidth: '6.5rem' },
+          }}
+        />
+        <Button type="submit" variant="contained" sx={{ mb: 0.25 }}>
           Recibir
         </Button>
-        <Button type="button" variant="outlined" onClick={handleDemo}>
-          Código demo
-        </Button>
       </div>
+
+      <div className="border-t border-border pt-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+          Códigos demo
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {DEMO_SKUS.map((sku) => (
+            <button
+              key={sku.skuId}
+              type="button"
+              title={sku.name}
+              onClick={() => handleDemo(sku.skuId)}
+              className="rounded-md border border-border bg-surface px-2 py-1 font-mono-ui text-[11px] font-medium text-text-muted transition-colors hover:border-brand/50 hover:text-text"
+            >
+              {sku.skuId}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {(invalid || error) && (
         <Alert severity="error">{invalid ? 'Ingrese un código de SKU' : error}</Alert>
       )}
