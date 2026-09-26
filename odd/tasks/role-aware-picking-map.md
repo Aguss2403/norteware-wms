@@ -83,7 +83,7 @@ The current UI exposes every screen to every user. A presentation-friendly role 
   - Citrus simplification: removed `CONTROL DE CALIDAD`, pallet, and forklift cues. Scanners are now rendered only at Reception and Dispatch.
   - Verification actual output: `node scripts/validate-seeds.mjs` passed for 3 clients, 3 layouts, and 8 SKUs; it additionally validates Citrus navigation-node references, rack access nodes, and the Dispatch navigation node. `npm run build` passed with Vite 5.4.21 (1029 modules, 2.23 s); its nested seed validation passed. The existing >500 kB chunk-size warning remained non-blocking.
   - Source audit: Dispatch (`5-7`) reaches the first Citrus rack through `Conexión de despacho` -> `Corredor principal` -> `Conexión A-01`/`A-02` -> named aisle -> vertical rack-access connector. Consecutive selected stops are emitted as individual green legs; the final `return` stop is the only orange leg. Every Citrus graph edge is horizontal or vertical, so no route crosses a zone interior.
-  - Commit: recorded in the local delivery result for this work unit.
+  - Commit: `93f40ae` (`feat(map): add physical picking corridors`).
 - [ ] ODD-09 — Deferred rack occupancy fill indicator.
   - Scope: fixed capacity of 10 units per rack, visual fill state driven by current stock.
   - Reason for deferral: must not be mixed with the route-network redesign.
