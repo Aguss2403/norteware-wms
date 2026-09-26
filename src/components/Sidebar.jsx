@@ -12,23 +12,24 @@ import MapIcon from '@mui/icons-material/Map';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import ClientSwitcher from './ClientSwitcher.jsx';
+import { ROLES, useRole } from '../context/RoleContext.jsx';
 
 // Nav order + Spanish labels. Routes live under the /app product area.
 const NAV_GROUPS = [
   {
     label: 'General',
     items: [
-      { path: '/app', label: 'Dashboard', Icon: DashboardIcon, end: true },
-      { path: '/app/ingreso', label: 'Ingreso', Icon: MoveToInboxIcon },
-      { path: '/app/egreso', label: 'Egreso', Icon: OutboxIcon },
-      { path: '/app/mapa', label: 'Mapa del depósito', Icon: MapIcon },
+      { path: '/app', label: 'Dashboard', Icon: DashboardIcon, end: true, roles: [ROLES.MANAGER] },
+      { path: '/app/ingreso', label: 'Ingreso', Icon: MoveToInboxIcon, roles: [ROLES.OPERATOR] },
+      { path: '/app/egreso', label: 'Egreso', Icon: OutboxIcon, roles: [ROLES.OPERATOR] },
+      { path: '/app/mapa', label: 'Mapa del depósito', Icon: MapIcon, roles: [ROLES.OPERATOR] },
     ],
   },
   {
     label: 'Análisis',
     items: [
-      { path: '/app/inventario', label: 'Inventario', Icon: InventoryIcon },
-      { path: '/app/trazabilidad', label: 'Trazabilidad', Icon: TimelineIcon },
+      { path: '/app/inventario', label: 'Inventario', Icon: InventoryIcon, roles: [ROLES.MANAGER] },
+      { path: '/app/trazabilidad', label: 'Trazabilidad', Icon: TimelineIcon, roles: [ROLES.MANAGER] },
     ],
   },
 ];
@@ -41,6 +42,8 @@ const GROUP_LABEL_CLASS =
   'px-3 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted';
 
 export default function Sidebar() {
+  const { role, setRole } = useRole();
+
   return (
     <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-ink px-4 py-6">
       {/* Brand logo + wordmark (mockup .logo): links back to the marketing
@@ -58,6 +61,9 @@ export default function Sidebar() {
 
       <nav aria-label="Navegación principal" className="flex flex-col gap-0.5">
         {NAV_GROUPS.map((group) => {
+          const items = group.items.filter((item) => item.roles.includes(role));
+          if (items.length === 0) return null;
+
           const groupId = `sidebar-group-${group.label.toLowerCase()}`;
           return (
             <div key={group.label}>
@@ -65,7 +71,7 @@ export default function Sidebar() {
                 {group.label}
               </div>
               <ul className="list-none p-0" aria-labelledby={groupId}>
-                {group.items.map((item) => (
+                {items.map((item) => (
                   <li key={item.label}>
                     <NavLink
                       to={item.path}
@@ -99,6 +105,21 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="mt-4 border-t border-white/10 px-2 pt-4">
+        <label htmlFor="sidebar-demo-role" className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+          Rol de demostración
+        </label>
+        <select
+          id="sidebar-demo-role"
+          value={role}
+          onChange={(event) => setRole(event.target.value)}
+          className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-[13px] font-medium text-ink-text outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+        >
+          <option value={ROLES.OPERATOR}>Operador</option>
+          <option value={ROLES.MANAGER}>Gerente</option>
+        </select>
+      </div>
 
       {/* Footer client switcher pill (mockup .sidebar-footer, design D3b). */}
       <div className="mt-auto pt-4">

@@ -13,6 +13,7 @@ import KpiCard from '../components/KpiCard.jsx';
 import RackStatusList from '../components/RackStatusList.jsx';
 import MovementsTable from '../components/MovementsTable.jsx';
 import DashboardSearch from '../components/DashboardSearch.jsx';
+import { ROLES, useRole } from '../context/RoleContext.jsx';
 
 function relativeTime(iso) {
   if (!iso) return '—';
@@ -25,6 +26,7 @@ function relativeTime(iso) {
 
 export default function Dashboard() {
   const { client, layout, stock, movements } = useClient();
+  const { role, setRole } = useRole();
   const data = useMemo(
     () => buildDashboardData({ client, layout, stock, movements }),
     [client, layout, stock, movements]
@@ -38,9 +40,22 @@ export default function Dashboard() {
       {/* Topbar (mockup .topbar): greeting + date, search, avatar. */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-[22px] font-semibold tracking-tight text-text">
-            Hola 👋
-          </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="font-display text-[22px] font-semibold tracking-tight text-text">Hola 👋</h1>
+            <label className="sr-only" htmlFor="demo-role">
+              Rol de demostración
+            </label>
+            <span className="text-[13px] font-medium text-text-muted">Rol:</span>
+            <select
+              id="demo-role"
+              value={role}
+              onChange={(event) => setRole(event.target.value)}
+              className="rounded-lg border border-border bg-card px-2.5 py-1 text-[13px] font-medium text-text shadow-sm outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+            >
+              <option value={ROLES.OPERATOR}>Operador</option>
+              <option value={ROLES.MANAGER}>Gerente</option>
+            </select>
+          </div>
           <p className="mt-1 text-[13px] text-text-muted">Así está el depósito hoy, {dateLabel}</p>
         </div>
         <div className="flex items-center gap-3">

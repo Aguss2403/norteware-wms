@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme.js';
 import { ClientProvider } from './context/ClientContext.jsx';
+import { RoleProvider } from './context/RoleContext.jsx';
 import App from './App.jsx';
 
 // D2 self-hosted fonts (@fontsource, offline-safe classroom demo) — loaded
@@ -19,15 +20,18 @@ import '@fontsource/ibm-plex-mono/500.css';
 import './index.css';
 
 // Wiring order (design D1): router owns routing, ThemeProvider owns theming,
-// CssBaseline applies the light base colors, ClientProvider owns client state.
+// CssBaseline applies the light base colors, ClientProvider owns client state,
+// and RoleProvider owns the browser-only demo role.
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <ClientProvider>
-          <App />
-        </ClientProvider>
+        <RoleProvider>
+          <ClientProvider>
+            <App />
+          </ClientProvider>
+        </RoleProvider>
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
