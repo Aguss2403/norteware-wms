@@ -43,7 +43,10 @@ export const warehouseVisuals = {
       { id: 'citrus-east', label: 'PASILLO A-03', x: 882, y: 242, width: 248, height: 16, orientation: 'horizontal' },
       { id: 'citrus-south', label: 'PASILLO A-04', x: 890, y: 270, width: 20, height: 250, orientation: 'vertical' },
     ],
-    docks: [{ id: 'receiving-dock', label: 'MUELLE', labelDx: 24, labelDy: -28, x: 132, y: 176, entrance: { x: 132, y: 270 } }],
+    docks: [
+      { id: 'receiving-dock', locationId: '0-0', label: 'RECEPCIÓN', labelDx: 24, labelDy: -28, x: 132, y: 176, entrance: { x: 132, y: 270 } },
+      { id: 'dispatch-dock', locationId: '5-7', label: 'DESPACHO', labelDx: -84, labelDy: 30, x: 1040, y: 566, entrance: { x: 1040, y: 520 } },
+    ],
     doors: [
       { id: 'citrus-inbound', label: 'PUERTA', x: 46, y: 286, width: 78, height: 18, side: 'west' },
       { id: 'citrus-outbound', label: 'PUERTA', x: 1004, y: 606, width: 78, height: 18, side: 'east' },
@@ -89,7 +92,10 @@ export const warehouseVisuals = {
       { id: 'sugar-south', label: 'PASILLO B-03', x: 352, y: 392, width: 30, height: 148, orientation: 'vertical' },
       { id: 'sugar-pick', label: 'PASILLO B-04', x: 716, y: 392, width: 30, height: 148, orientation: 'vertical' },
     ],
-    docks: [{ id: 'loading-dock', label: 'MUELLE', labelDx: 24, labelDy: 30, x: 132, y: 524, entrance: { x: 132, y: 520 } }],
+    docks: [
+      { id: 'receiving-dock', locationId: '4-0', label: 'RECEPCIÓN', labelDx: 24, labelDy: 30, x: 132, y: 566, entrance: { x: 132, y: 520 } },
+      { id: 'dispatch-dock', locationId: '4-7', label: 'DESPACHO', labelDx: -84, labelDy: 30, x: 1040, y: 566, entrance: { x: 1040, y: 520 } },
+    ],
     doors: [
       { id: 'sugar-inbound', label: 'PUERTA', x: 46, y: 606, width: 78, height: 18, side: 'west' },
       { id: 'sugar-outbound', label: 'PUERTA', x: 1004, y: 286, width: 78, height: 18, side: 'east' },
@@ -135,7 +141,10 @@ export const warehouseVisuals = {
       { id: 'wholesale-east', label: 'PASILLO C-03', x: 608, y: 242, width: 246, height: 16, orientation: 'horizontal' },
       { id: 'wholesale-south', label: 'PASILLO C-04', x: 890, y: 270, width: 30, height: 300, orientation: 'vertical' },
     ],
-    docks: [{ id: 'dispatch-dock', label: 'MUELLE', labelDx: 24, labelDy: 30, x: 132, y: 524, entrance: { x: 132, y: 570 } }],
+    docks: [
+      { id: 'receiving-dock', locationId: '6-0', label: 'RECEPCIÓN', labelDx: 24, labelDy: 30, x: 132, y: 616, entrance: { x: 132, y: 570 } },
+      { id: 'dispatch-dock', locationId: '6-6', label: 'DESPACHO', labelDx: 24, labelDy: 30, x: 900, y: 616, entrance: { x: 900, y: 570 } },
+    ],
     doors: [
       { id: 'wholesale-inbound', label: 'PUERTA', x: 46, y: 606, width: 78, height: 18, side: 'west' },
       { id: 'wholesale-outbound', label: 'PUERTA', x: 1004, y: 286, width: 78, height: 18, side: 'east' },

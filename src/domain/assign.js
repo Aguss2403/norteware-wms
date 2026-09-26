@@ -17,12 +17,12 @@
 import { findRoute } from './bfs.js';
 import { isFreeRack, isRack } from './model.js';
 
-function pickNearest(layout, matches) {
+function pickNearest(layout, matches, originId) {
   const candidates = layout.locations.filter(matches);
   if (candidates.length === 0) return null;
 
   const scored = candidates.map((rack) => {
-    const route = findRoute(layout, layout.dockId, rack.locationId);
+    const route = findRoute(layout, originId, rack.locationId);
     return { rack, distance: route.path.length > 0 ? route.distance : Infinity };
   });
 
@@ -38,10 +38,10 @@ function pickNearest(layout, matches) {
   return reachable[0].rack;
 }
 
-export function findNearestFreeRack(layout, productTypeId) {
-  return pickNearest(layout, isFreeRack);
+export function findNearestFreeRack(layout, productTypeId, originId = layout.receptionId ?? layout.dockId) {
+  return pickNearest(layout, isFreeRack, originId);
 }
 
-export function findNearestRackOfType(layout, productTypeId) {
-  return pickNearest(layout, (location) => isRack(location) && location.productTypeId === productTypeId);
+export function findNearestRackOfType(layout, productTypeId, originId = layout.receptionId ?? layout.dockId) {
+  return pickNearest(layout, (location) => isRack(location) && location.productTypeId === productTypeId, originId);
 }

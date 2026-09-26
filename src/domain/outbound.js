@@ -39,7 +39,7 @@ export function rackStatusFor(layout, sku) {
   );
   if (!hasRack) return { kind: 'unlocated' };
 
-  const nearest = findNearestRackOfType(layout, sku.productTypeId);
+  const nearest = findNearestRackOfType(layout, sku.productTypeId, layout.dispatchId);
   if (!nearest) return { kind: 'no-route' };
   return { kind: 'located', rackId: nearest.locationId };
 }
@@ -50,5 +50,5 @@ export function resolveOutboundFlow(layout, sku) {
   if (status.kind === 'no-route') return { kind: 'no-route' };
 
   const rack = layout.index.get(status.rackId);
-  return { kind: 'located', rack, route: findRoute(layout, layout.dockId, rack.locationId) };
+  return { kind: 'located', rack, route: findRoute(layout, layout.dispatchId, rack.locationId) };
 }

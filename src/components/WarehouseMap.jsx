@@ -54,12 +54,16 @@ function usePrefersReducedMotion() {
   return prefersReducedMotion;
 }
 
-function visualDockPoint(layout, profile) {
-  const dock = profile.docks?.[0];
+function visualDock(layout, profile, locationId) {
+  return profile.docks?.find((dock) => dock.locationId === locationId) ?? null;
+}
+
+function visualDockPoint(layout, profile, locationId) {
+  const dock = visualDock(layout, profile, locationId);
   if (dock && Number.isFinite(dock.x) && Number.isFinite(dock.y)) {
     return { x: dock.x, y: dock.y };
   }
-  const location = layout.index.get(layout.dockId);
+  const location = layout.index.get(locationId);
   if (!location) return null;
   const { x, y, width, height } = profile.logicalGrid;
   return {
@@ -68,43 +72,30 @@ function visualDockPoint(layout, profile) {
   };
 }
 
-function visualDockEntrance(layout, profile) {
-  const dock = profile.docks?.[0];
+function visualDockEntrance(layout, profile, locationId) {
+  const dock = visualDock(layout, profile, locationId);
   if (dock?.entrance && Number.isFinite(dock.entrance.x) && Number.isFinite(dock.entrance.y)) {
     return { x: dock.entrance.x, y: dock.entrance.y };
   }
-  return visualDockPoint(layout, profile);
-}
-
-function bankSlots(bank) {
-  const slots = [];
-  const slotWidth = bank.width / bank.columns;
-  const slotHeight = bank.height / bank.rows;
-  for (let index = 0; index < bank.rows * bank.columns; index += 1) {
-    const row = Math.floor(index / bank.columns);
-    const column = index % bank.columns;
-    slots.push({
-      bank,
-      x: bank.x + column * slotWidth,
-      y: bank.y + row * slotHeight,
-      width: slotWidth,
-      height: slotHeight,
-      center: {
-        x: bank.x + (column + 0.5) * slotWidth,
-        y: bank.y + (row + 0.5) * slotHeight,
-      },
-    });
-  }
-  return slots;
+  return visualDockPoint(layout, profile, locationId);
 }
 
 function rackSlotMap(layout, profile) {
-  const rackLocations = layout.locations.filter((location) => location.type === 'rack');
-  const slots = (profile.rackBanks ?? []).flatMap(bankSlots);
-  return new Map(rackLocations.map((location, index) => [location.locationId, slots[index] ?? null]));
+  return new Map(layout.locations.filter((location) => location.type === 'rack').map((location) => {
+    const routeGeometry = profile.routeGeometry;
+    const center = routeGeometry?.columnX?.[location.col] !== undefined && routeGeometry?.rowY?.[location.row] !== undefined
+      ? { x: routeGeometry.columnX[location.col], y: routeGeometry.rowY[location.row] }
+      : {
+          x: profile.logicalGrid.x + ((location.col + 0.5) / layout.cols) * profile.logicalGrid.width,
+          y: profile.logicalGrid.y + ((location.row + 0.5) / layout.rows) * profile.logicalGrid.height,
+        };
+    const bank = { x: center.x - 24, y: center.y - 18, width: 48, height: 36, accessSide: 'bottom', accessGap: 0 };
+    return [location.locationId, { bank, x: bank.x, y: bank.y, width: bank.width, height: bank.height, center, accessPoint: center }];
+  }));
 }
 
 function rackAccessPoint(slot) {
+  if (slot.accessPoint) return slot.accessPoint;
   const { bank } = slot;
   const gap = bank.accessGap ?? 8;
   const side = bank.accessSide ?? 'bottom';
@@ -117,7 +108,7 @@ function rackAccessPoint(slot) {
 function pointFor(layout, locationId, profile, rackSlots) {
   const location = layout.index.get(locationId);
   if (!location) return null;
-  if (locationId === layout.dockId) return visualDockEntrance(layout, profile);
+  if (location.type === 'dock') return visualDockEntrance(layout, profile, locationId);
   if (location.type === 'rack') {
     const slot = rackSlots?.get(locationId);
     if (!slot) return null;
@@ -316,67 +307,35 @@ function RackAccessMarker({ slot }) {
 function RackLayer({ layout, profile }) {
   const rackLocations = layout.locations.filter((location) => location.type === 'rack');
   const rackSlots = rackSlotMap(layout, profile);
-  let rackOffset = 0;
-
   return (
     <g aria-label="Estantes del almacén" role="group">
-      {(profile.rackBanks ?? []).map((bank) => {
-        const slots = bankSlots(bank);
-        const bankLocations = rackLocations.slice(rackOffset, rackOffset + slots.length);
-        rackOffset += slots.length;
+      {rackLocations.map((location) => {
+        const slot = rackSlots.get(location.locationId);
+        if (!slot) return null;
+        const assigned = Boolean(location.productTypeId);
+        const title = assigned
+          ? `${profile.rack.label} ${location.locationId} — ${profile.rack.assignedLabel} — ${location.productTypeId}`
+          : `${profile.rack.label} ${location.locationId} — ${profile.rack.freeLabel}`;
         return (
-          <g key={bank.id} aria-label={`${bank.label}, ${bank.aisleLabel}`} role="group">
-            <title>{`${bank.label}, ${bank.aisleLabel}`}</title>
-            <rect x={bank.x} y={bank.y} width={bank.width} height={bank.height} rx="4" fill={COLORS.surface} stroke={COLORS.border} strokeWidth="2" />
-            <text x={bank.x} y={bank.y - 8} fill={COLORS.text} fontSize="10" fontWeight="700" letterSpacing="0.8">
-              {bank.aisleLabel}
+          <g key={location.locationId} aria-label={title} role="group">
+            <title>{title}</title>
+            <rect
+              x={slot.x}
+              y={slot.y}
+              width={slot.width}
+              height={slot.height}
+              rx="4"
+              fill={assigned ? COLORS.rack : COLORS.rackFree}
+              stroke={assigned ? COLORS.assignedStroke : COLORS.freeStroke}
+              strokeWidth="1.5"
+            />
+            <RackAccessMarker slot={slot} />
+            <text x={slot.center.x} y={slot.center.y - 4} fill={COLORS.text} fontSize="8" fontWeight="700" textAnchor="middle">
+              {location.locationId}
             </text>
-            {slots.map((slot, index) => {
-              const location = bankLocations[index];
-               if (!location) {
-                 return (
-                   <g key={`${bank.id}-empty-${index}`}>
-                     <rect x={slot.x + 3} y={slot.y + 3} width={slot.width - 6} height={slot.height - 6} fill={COLORS.rackFree} fillOpacity="0.35" stroke={COLORS.border} />
-                     <RackAccessMarker slot={slot} />
-                   </g>
-                 );
-               }
-              if (!rackSlots.get(location.locationId)) return null;
-              const assigned = Boolean(location.productTypeId);
-              const rackLabel = assigned ? profile.rack.assignedLabel : profile.rack.freeLabel;
-              const title = assigned
-                ? `${profile.rack.label} ${location.locationId} — ${rackLabel} — ${location.productTypeId}`
-                : `${profile.rack.label} ${location.locationId} — ${rackLabel}`;
-              const slotStyle = assigned ? COLORS.rack : COLORS.rackFree;
-              const statusColor = assigned ? COLORS.assignedLabel : COLORS.muted;
-              const slotStroke = assigned ? COLORS.assignedStroke : COLORS.freeStroke;
-              return (
-                <g key={location.locationId} aria-label={title} role="group">
-                   <title>{title}</title>
-                   <rect x={slot.x + 3} y={slot.y + 3} width={slot.width - 6} height={slot.height - 6} fill={slotStyle} stroke={slotStroke} strokeWidth="1.5" />
-                   <rect x={slot.x + 3} y={slot.y + 3} width="4" height={slot.height - 6} fill={assigned ? COLORS.assignedStroke : 'none'} />
-                   <RackAccessMarker slot={slot} />
-                   <text x={slot.center.x} y={slot.center.y - 6} fill={COLORS.text} fontSize="8" fontWeight="700" textAnchor="middle">
-                    {location.locationId}
-                  </text>
-                  <text x={slot.center.x} y={slot.center.y + 8} fill={statusColor} fontSize="7" fontWeight="700" textAnchor="middle">
-                    {rackLabel}
-                  </text>
-                </g>
-              );
-            })}
-            {Array.from({ length: bank.rows - 1 }).map((_, index) => {
-              const shelfY = bank.y + ((index + 1) / bank.rows) * bank.height;
-              return <line key={`${bank.id}-row-${shelfY}`} x1={bank.x} y1={shelfY} x2={bank.x + bank.width} y2={shelfY} stroke={COLORS.border} strokeWidth="2" />;
-            })}
-            {Array.from({ length: bank.columns - 1 }).map((_, index) => {
-              const dividerX = bank.x + ((index + 1) / bank.columns) * bank.width;
-              return <line key={`${bank.id}-column-${dividerX}`} x1={dividerX} y1={bank.y} x2={dividerX} y2={bank.y + bank.height} stroke={COLORS.border} />;
-            })}
-            {Array.from({ length: profile.rack.shelfLines }).map((_, index) => {
-              const shelfY = bank.y + ((index + 1) / (profile.rack.shelfLines + 1)) * bank.height;
-              return <line key={`${bank.id}-shelf-${shelfY}`} x1={bank.x + 7} y1={shelfY} x2={bank.x + bank.width - 7} y2={shelfY} stroke={COLORS.border} strokeOpacity="0.8" />;
-            })}
+            <text x={slot.center.x} y={slot.center.y + 8} fill={assigned ? COLORS.assignedLabel : COLORS.muted} fontSize="7" fontWeight="700" textAnchor="middle">
+              {assigned ? profile.rack.assignedLabel : profile.rack.freeLabel}
+            </text>
           </g>
         );
       })}
@@ -385,20 +344,25 @@ function RackLayer({ layout, profile }) {
 }
 
 function DockLayer({ layout, profile }) {
-  const point = visualDockPoint(layout, profile);
-  const entrance = visualDockEntrance(layout, profile);
-  const dock = profile.docks[0];
-  if (!point || !dock) return null;
   return (
-    <g aria-label={`${dock.label} de recepción`} role="group">
-       <title>{`${dock.label} de recepción`}</title>
-       <rect x={point.x - 35} y={point.y - 30} width="70" height="60" rx="6" fill={COLORS.brand} fillOpacity="0.9" stroke={COLORS.dockStroke} strokeWidth="2" />
-       <path d={`M ${point.x - 20} ${point.y - 13} H ${point.x + 20} M ${point.x - 20} ${point.y} H ${point.x + 20} M ${point.x - 20} ${point.y + 13} H ${point.x + 20}`} stroke={COLORS.dockGlyph} strokeWidth="2" />
-       <path d={`M ${point.x} ${point.y + 30} V ${entrance.y}`} stroke={COLORS.access} strokeWidth="3" strokeDasharray="3 5" />
-       <circle cx={entrance.x} cy={entrance.y} r="5" fill={COLORS.routeDark} stroke={COLORS.dockGlyph} strokeWidth="2" />
-       <text x={point.x + dock.labelDx} y={point.y + dock.labelDy} fill={COLORS.text} fontSize="13" fontWeight="700" letterSpacing="1">
-        {dock.label}
-      </text>
+    <g aria-label="Muelles operativos" role="group">
+      {profile.docks.map((dock) => {
+        const point = visualDockPoint(layout, profile, dock.locationId);
+        const entrance = visualDockEntrance(layout, profile, dock.locationId);
+        if (!point || !entrance) return null;
+        return (
+          <g key={dock.id} aria-label={dock.label} role="group">
+            <title>{dock.label}</title>
+            <rect x={point.x - 35} y={point.y - 30} width="70" height="60" rx="6" fill={COLORS.brand} fillOpacity="0.9" stroke={COLORS.dockStroke} strokeWidth="2" />
+            <path d={`M ${point.x - 20} ${point.y - 13} H ${point.x + 20} M ${point.x - 20} ${point.y} H ${point.x + 20} M ${point.x - 20} ${point.y + 13} H ${point.x + 20}`} stroke={COLORS.dockGlyph} strokeWidth="2" />
+            <path d={`M ${point.x} ${point.y + 30} V ${entrance.y}`} stroke={COLORS.access} strokeWidth="3" strokeDasharray="3 5" />
+            <circle cx={entrance.x} cy={entrance.y} r="5" fill={COLORS.routeDark} stroke={COLORS.dockGlyph} strokeWidth="2" />
+            <text x={point.x + dock.labelDx} y={point.y + dock.labelDy} fill={COLORS.text} fontSize="13" fontWeight="700" letterSpacing="1">
+              {dock.label}
+            </text>
+          </g>
+        );
+      })}
     </g>
   );
 }

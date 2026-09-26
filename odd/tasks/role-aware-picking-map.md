@@ -45,10 +45,13 @@ The current UI exposes every screen to every user. A presentation-friendly role 
   - Verification observed: `node scripts/validate-seeds.mjs` passed; `npm run build` passed (Vite 5.4.21; existing chunk-size warning only). Manual source inspection confirmed operators redirect from `/app`, `/app/inventario`, and `/app/trazabilidad` to `/app/ingreso`, while managers redirect from `/app/ingreso`, `/app/egreso`, and `/app/mapa` to `/app`. Each redirect destination is allowed for its role, preventing a redirect loop; `/app/ingresar` remains outside the guarded layout.
   - Relevant files: `src/context/RoleContext.jsx`, `src/main.jsx`, `src/pages/Dashboard.jsx`, `src/components/Sidebar.jsx`, `src/layouts/AppLayout.jsx`.
   - Rationale: this changes only demo presentation and local browser state; it is not authentication or authorization and does not secure direct access from a knowledgeable user.
-- [ ] ODD-02 — Model inbound/outbound endpoints and align logical grid positions with SVG rack slots.
-  - Route: delegated.
-  - Trigger: touches domain data, map projection, and validation across 4+ files.
-  - Verification: `node scripts/validate-seeds.mjs`, `npm run build`, manual map route checks.
+- [x] ODD-02 — Model inbound/outbound endpoints and align logical grid positions with SVG rack slots.
+  - Completed: each layout now declares `receptionId` and `dispatchId`; `dockId` remains an intentional compatibility alias for reception. Inbound routing and nearest-rack selection use reception, while outbound routing and nearest-rack selection use dispatch.
+  - SVG alignment: every visual dock has a matching logical `locationId`, both Reception and Dispatch are rendered and labeled, and every rack slot is derived from its logical row/column through the same route geometry used for paths. Rack labels and route endpoints therefore share one coordinate model.
+  - Validation: `scripts/validate-seeds.mjs` now asserts distinct valid endpoints and verifies the citrus inbound route starts at reception and the outbound route starts at dispatch.
+  - Verification observed: `node scripts/validate-seeds.mjs` passed; `npm run build` passed (Vite 5.4.21; existing chunk-size warning only). Manual source inspection confirmed citrus inbound `0-0 -> 2-6` and outbound `5-7 -> 1-6`; no compound multi-SKU route or partial-fulfillment behavior was changed.
+  - Rationale: endpoints must be distinct in the grid, BFS, nearest-rack selection, and SVG projection; moving only a visual marker would leave operational routes incorrect.
+  - Commit: recorded in the local delivery report for this work unit.
 - [ ] ODD-03 — Build a compound multi-stop outbound route and render route legs/return-to-dispatch state.
   - Route: delegated.
   - Trigger: changes domain flow, Egreso state, map rendering, and validation across 4+ files.

@@ -38,8 +38,12 @@ check(knownProductTypes.size >= 4, `expected >= 4 distinct product types, got ${
 // 2. Per-layout integrity
 for (const layout of layouts) {
   const prefix = `[${layout.clientId}]`;
-  const dock = layout.index.get(layout.dockId);
-  check(dock && isDock(dock), `${prefix} dockId "${layout.dockId}" does not resolve to a dock location`);
+  const reception = layout.index.get(layout.receptionId);
+  const dispatch = layout.index.get(layout.dispatchId);
+  check(reception && isDock(reception), `${prefix} receptionId "${layout.receptionId}" does not resolve to a dock location`);
+  check(dispatch && isDock(dispatch), `${prefix} dispatchId "${layout.dispatchId}" does not resolve to a dock location`);
+  check(layout.receptionId !== layout.dispatchId, `${prefix} reception and dispatch must be distinct endpoints`);
+  check(layout.dockId === layout.receptionId, `${prefix} dockId compatibility alias must resolve to receptionId`);
 
   const seen = new Set();
   for (const loc of layout.locations) {
@@ -123,6 +127,8 @@ check(findNearestRackOfType(citrus, 'PT-ENVASE') === null,
 const flowAuto = resolveInboundFlow(citrus, skuOfType('PT-JUGO'));
 check(flowAuto.kind === 'auto-assigned' && flowAuto.rack.locationId === '2-6' && flowAuto.route.path.length > 0,
   `inbound flow: PT-JUGO on citrus must auto-assign 2-6 with a route, got ${flowAuto.kind}`);
+check(flowAuto.route.path[0] === citrus.receptionId,
+  `inbound flow: PT-JUGO must start at reception "${citrus.receptionId}"`);
 
 const flowAssigned = resolveInboundFlow(citrus, skuOfType('PT-CITRICO'));
 check(flowAssigned.kind === 'assigned' && flowAssigned.rack.locationId === '1-6' && flowAssigned.route.path.length > 0,
@@ -161,6 +167,8 @@ check(rackStatusFor(citrus, skuOfType('PT-JUGO')).kind === 'unlocated',
 const outFlowCitrus = resolveOutboundFlow(citrus, skuOfType('PT-CITRICO'));
 check(outFlowCitrus.kind === 'located' && outFlowCitrus.rack.locationId === '1-6' && outFlowCitrus.route.path.length > 0,
   `outbound flow: citrus PT-CITRICO must route to 1-6, got ${outFlowCitrus.kind}`);
+check(outFlowCitrus.route.path[0] === citrus.dispatchId,
+  `outbound flow: citrus PT-CITRICO must start at dispatch "${citrus.dispatchId}"`);
 check(resolveOutboundFlow(citrus, skuOfType('PT-JUGO')).kind === 'no-stock',
   'outbound flow: citrus PT-JUGO must report no-stock (no place assigned)');
 check(resolveOutboundFlow(citrus, skuOfType('PT-ENVASE')).kind === 'no-route',

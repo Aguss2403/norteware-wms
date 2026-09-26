@@ -44,7 +44,9 @@ export function isFreeRack(location) {
 
 // Expands a compact raw layout (string grid + rack metadata) into the
 // canonical layout shape consumed by BFS, assign, and the map component:
-//   { clientId, rows, cols, dockId, locations: Location[], index: Map<id, Location> }
+//   { clientId, rows, cols, receptionId, dispatchId, dockId, locations, index }
+// `dockId` remains a compatibility alias for `receptionId`; new behavior must
+// use the named endpoint that matches the operational flow.
 // Grid legend: D dock, R rack, # wall, . path.
 export function buildLayout(raw) {
   const locations = [];
@@ -74,7 +76,9 @@ export function buildLayout(raw) {
     clientId: raw.clientId,
     rows: raw.rows,
     cols: raw.cols,
-    dockId: raw.dockId,
+    receptionId: raw.receptionId,
+    dispatchId: raw.dispatchId,
+    dockId: raw.receptionId,
     locations,
     index,
   };

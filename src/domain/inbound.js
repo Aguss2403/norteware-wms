@@ -25,12 +25,12 @@ export function resolveInboundFlow(layout, sku) {
   );
 
   if (hasAssignedRack) {
-    const rack = findNearestRackOfType(layout, sku.productTypeId);
+    const rack = findNearestRackOfType(layout, sku.productTypeId, layout.receptionId);
     if (!rack) return { kind: 'no-route' };
-    return { kind: 'assigned', rack, route: findRoute(layout, layout.dockId, rack.locationId) };
+    return { kind: 'assigned', rack, route: findRoute(layout, layout.receptionId, rack.locationId) };
   }
 
-  const rack = findNearestFreeRack(layout, sku.productTypeId);
+  const rack = findNearestFreeRack(layout, sku.productTypeId, layout.receptionId);
   if (!rack) return { kind: 'no-storage' };
-  return { kind: 'auto-assigned', rack, route: findRoute(layout, layout.dockId, rack.locationId) };
+  return { kind: 'auto-assigned', rack, route: findRoute(layout, layout.receptionId, rack.locationId) };
 }
