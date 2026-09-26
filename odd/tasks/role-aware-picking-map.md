@@ -51,11 +51,14 @@ The current UI exposes every screen to every user. A presentation-friendly role 
   - Validation: `scripts/validate-seeds.mjs` now asserts distinct valid endpoints and verifies the citrus inbound route starts at reception and the outbound route starts at dispatch.
   - Verification observed: `node scripts/validate-seeds.mjs` passed; `npm run build` passed (Vite 5.4.21; existing chunk-size warning only). Manual source inspection confirmed citrus inbound `0-0 -> 2-6` and outbound `5-7 -> 1-6`; no compound multi-SKU route or partial-fulfillment behavior was changed.
   - Rationale: endpoints must be distinct in the grid, BFS, nearest-rack selection, and SVG projection; moving only a visual marker would leave operational routes incorrect.
+  - Commit: `e55d4b3` (`feat(map): separate warehouse operation endpoints`).
+- [x] ODD-03 — Build a compound multi-stop outbound route and render route legs/return-to-dispatch state.
+  - Completed: `resolveOrder` now resolves available lines in selection order as one Dispatch -> rack stops -> Dispatch route. It returns the joined path, ordered stops, leg segments, total distance, and total steps; every join cell is represented once. Unavailable, insufficient, and unreachable lines retain their existing UI status and do not remove earlier valid legs.
+  - Presentation: Egreso renders the compound route and a concise ordered Spanish summary. The map keeps its resting behavior and adds numbered pick-stop markers plus a return-to-dock endpoint for compound routes.
+  - Validation: `scripts/validate-seeds.mjs` asserts a deterministic two-SKU citrus route for SKU-002 then SKU-003: `5-7 -> 1-6 -> 1-6 -> 5-7`, 14 tramos and 15 pasos. `node scripts/validate-seeds.mjs` passed; `npm run build` passed (Vite 5.4.21; existing chunk-size warning only).
+  - Relevant files: `src/domain/order.js`, `src/pages/Egreso.jsx`, `src/components/WarehouseMap.jsx`, `scripts/validate-seeds.mjs`.
+  - Rationale: routing each line from Dispatch discarded the prior pick context and showed only the first line. A compound route makes the operational itinerary coherent without changing endpoint geometry, role behavior, or partial-confirmation rules.
   - Commit: recorded in the local delivery report for this work unit.
-- [ ] ODD-03 — Build a compound multi-stop outbound route and render route legs/return-to-dispatch state.
-  - Route: delegated.
-  - Trigger: changes domain flow, Egreso state, map rendering, and validation across 4+ files.
-  - Verification: `node scripts/validate-seeds.mjs`, `npm run build`, manual multi-SKU outbound scenario.
 - [ ] ODD-04 — Make partial fulfillment explicit and perform a final focused UI/readback verification.
   - Route: delegated.
   - Trigger: implementation preparation and multi-file behavior verification.
@@ -63,6 +66,6 @@ The current UI exposes every screen to every user. A presentation-friendly role 
 
 ## Progress and evidence
 
-- Current state: ODD-01 complete and verified as a browser-only demo role adaptation.
-- Mapping evidence: current `Egreso` stores only `result.okLines[0].route`; inbound/outbound both start from `layout.dockId`; `WarehouseMap` assigns visual rack slots by array index instead of logical row/column.
-- Next step: implement ODD-02 as a bounded work unit.
+- Current state: ODD-01, ODD-02, and ODD-03 are complete and verified.
+- Mapping evidence: inbound uses `receptionId`, outbound uses `dispatchId`, and `WarehouseMap` derives each rack's visual slot from its logical coordinates.
+- Next step: implement ODD-04 as a bounded work unit.

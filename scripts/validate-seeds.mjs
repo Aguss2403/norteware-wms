@@ -15,6 +15,7 @@ import { findRoute } from '../src/domain/bfs.js';
 import { findNearestFreeRack, findNearestRackOfType } from '../src/domain/assign.js';
 import { resolveInboundFlow } from '../src/domain/inbound.js';
 import { rackStatusFor, resolveOutboundFlow, searchSkus } from '../src/domain/outbound.js';
+import { resolveOrder } from '../src/domain/order.js';
 import { LOCATION_TYPES, isDock, isRack } from '../src/domain/model.js';
 
 // Fixed contract (locked by the seed wall/dock placement):
@@ -179,6 +180,19 @@ check(resolveOutboundFlow(azucar, skuOfType('PT-AZUCAR')).kind === 'no-route',
 const outMayorista = resolveOutboundFlow(mayorista, skuOfType('PT-ENVASE'));
 check(outMayorista.kind === 'located' && outMayorista.rack.locationId === '1-2',
   `outbound flow: PT-ENVASE on mayorista must route to 1-2, got ${outMayorista.kind}`);
+
+// 9. Compound outbound route: preserve requested SKU order and return to dispatch.
+const compoundOrder = resolveOrder(citrus, { 'SKU-002': 1, 'SKU-003': 1 }, [
+  { sku: skus.find((sku) => sku.skuId === 'SKU-002'), qty: 1 },
+  { sku: skus.find((sku) => sku.skuId === 'SKU-003'), qty: 1 },
+]);
+const compoundStops = compoundOrder.route?.stops.filter((stop) => stop.kind === 'pick').map((stop) => stop.locationId);
+check(compoundOrder.route?.path[0] === citrus.dispatchId,
+  `compound outbound route must start at dispatch "${citrus.dispatchId}"`);
+check(JSON.stringify(compoundStops) === JSON.stringify(['1-6', '1-6']),
+  `compound outbound route must preserve requested stop order, got ${compoundStops?.join(',') ?? 'none'}`);
+check(compoundOrder.route?.path.at(-1) === citrus.dispatchId,
+  `compound outbound route must return to dispatch "${citrus.dispatchId}"`);
 
 if (errors.length > 0) {
   console.error(`Seed validation FAILED (${errors.length} issue(s)):`);

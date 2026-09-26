@@ -88,7 +88,7 @@ export default function Egreso() {
     const result = resolveOrder(layout, stock, lines);
     setPickResult(result);
     setRemito(null);
-    setActiveRoute(result.okLines[0]?.route ?? null);
+    setActiveRoute(result.route);
   }
 
   function confirm() {
@@ -197,6 +197,16 @@ export default function Egreso() {
               Total: <span className="font-mono-ui">{pickResult.totalSteps} pasos</span> ·{' '}
               <span className="font-mono-ui">{pickResult.totalDistance} tramos</span>
             </div>
+          )}
+          {pickResult.route && (
+            <p className="mt-2 text-[12.5px] text-text-muted">
+              Ruta: Despacho{' '}
+              {pickResult.route.stops
+                .filter((stop) => stop.kind === 'pick')
+                .map((stop) => `→ Estante ${stop.locationId}`)
+                .join(' ')}{' '}
+              → Despacho
+            </p>
           )}
           {pickResult.okLines.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-2">

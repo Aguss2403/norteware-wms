@@ -429,23 +429,33 @@ function CueLayer({ cues }) {
   );
 }
 
-function RouteLayer({ points, finished }) {
+function RouteLayer({ points, stops, finished }) {
   if (points.length === 0) return null;
   const pathData = orthogonalPath(points);
   const first = points[0];
   const last = points[points.length - 1];
   return (
     <g aria-label="Ruta operativa" role="group">
-      <title>Ruta calculada desde el muelle hasta el estante</title>
+      <title>Ruta operativa continua</title>
       <path d={pathData} fill="none" stroke={COLORS.routeDark} strokeWidth="15" strokeLinecap="round" strokeLinejoin="round" />
       <path d={pathData} fill="none" stroke={COLORS.route} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx={first.x} cy={first.y} r="10" fill={COLORS.brand} stroke={COLORS.text} strokeWidth="2" />
       <text x={first.x + 16} y={first.y - 14} fill={COLORS.text} fontSize="11" fontWeight="700">INICIO · MUELLE</text>
+      {finished && stops.filter((stop) => stop.kind === 'pick').map((stop) => (
+        <g key={`${stop.order}-${stop.locationId}`}>
+          <circle cx={stop.point.x} cy={stop.point.y} r="10" fill={COLORS.routeDark} stroke={COLORS.route} strokeWidth="3" />
+          <text x={stop.point.x} y={stop.point.y + 4} fill={COLORS.text} fontSize="10" fontWeight="700" textAnchor="middle">
+            {stop.order}
+          </text>
+        </g>
+      ))}
       {finished && (
         <>
            <circle cx={last.x} cy={last.y} r="10" fill={COLORS.route} fillOpacity="0.25" stroke={COLORS.route} strokeWidth="3" />
            <path d={`M ${last.x - 6} ${last.y} H ${last.x + 6} M ${last.x} ${last.y - 6} V ${last.y + 6}`} stroke={COLORS.text} strokeWidth="2" />
-          <text x={last.x + 18} y={last.y + 5} fill={COLORS.text} fontSize="11" fontWeight="700">DESTINO · ESTANTE</text>
+          <text x={last.x + 18} y={last.y + 5} fill={COLORS.text} fontSize="11" fontWeight="700">
+            {stops.at(-1)?.kind === 'return' ? 'REGRESO · MUELLE' : 'DESTINO · ESTANTE'}
+          </text>
         </>
       )}
     </g>
@@ -510,6 +520,12 @@ export default function WarehouseMap({ route = null }) {
   const hasRoute = Boolean(route && Array.isArray(route.path) && route.path.length > 0);
   const rackSlots = useMemo(() => rackSlotMap(layout, profile), [layout, profile]);
   const projectedRoute = useMemo(() => pointsForRoute(layout, route, profile, rackSlots), [layout, profile, rackSlots, route]);
+  const projectedStops = useMemo(
+    () => (route?.stops ?? [])
+      .map((stop) => ({ ...stop, point: pointFor(layout, stop.locationId, profile, rackSlots) }))
+      .filter((stop) => stop.point),
+    [layout, profile, rackSlots, route]
+  );
   const hasRenderableRoute = hasRoute && projectedRoute.length > 0;
   const visibleRoute = hasRenderableRoute ? projectedRoute.slice(0, revealCount) : [];
   const mapId = `warehouse-map-${layout.clientId}`;
@@ -601,7 +617,7 @@ export default function WarehouseMap({ route = null }) {
             <DockLayer layout={layout} profile={profile} />
             <DoorLayer doors={profile.doors} />
             <CueLayer cues={profile.cues} />
-            <RouteLayer points={visibleRoute} finished={finished} />
+            <RouteLayer points={visibleRoute} stops={projectedStops} finished={finished} />
           </svg>
         </div>
         {/* Dotted 16px background grid (mockup .map-grid): covers the whole map
