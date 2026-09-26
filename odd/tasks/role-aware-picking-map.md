@@ -59,13 +59,17 @@ The current UI exposes every screen to every user. A presentation-friendly role 
   - Relevant files: `src/domain/order.js`, `src/pages/Egreso.jsx`, `src/components/WarehouseMap.jsx`, `scripts/validate-seeds.mjs`.
   - Rationale: routing each line from Dispatch discarded the prior pick context and showed only the first line. A compound route makes the operational itinerary coherent without changing endpoint geometry, role behavior, or partial-confirmation rules.
   - Commit: recorded in the local delivery report for this work unit.
-- [ ] ODD-04 — Make partial fulfillment explicit and perform a final focused UI/readback verification.
-  - Route: delegated.
-  - Trigger: implementation preparation and multi-file behavior verification.
-  - Verification: `node scripts/validate-seeds.mjs`, `npm run build`, manual partial-stock scenario.
+- [x] ODD-04 — Make partial fulfillment explicit and perform a final focused UI/readback verification.
+  - Completed: Egreso now calculates ready and excluded line/unit totals from `pickResult`. A partial order shows a warning before confirmation: “Despacho parcial. Se despacharán [lines] y [units]. Se excluirán [lines] y [units].” The action becomes “Despachar líneas disponibles”; a completely ready order uses “Confirmar despacho”.
+  - Remito scope: confirmation still derives `picked` exclusively from `pickResult.okLines`, so `recordOrderOutbound` and the remito contain only intentionally dispatched lines and units.
+  - Focused UI/readback verification: a complete flow has no partial-warning alert and offers “Confirmar despacho”; its remito contains all requested ready lines. A partial flow displays exact ready/excluded line and unit counts with correct singular/plural copy, offers only “Despachar líneas disponibles”, and its remito is built only from the ready lines. The existing zero-ready warning still blocks confirmation.
+  - Verification actual output: `node scripts/validate-seeds.mjs` passed with `Seed validation OK:` for 3 clients, 3 layouts, 8 SKUs, the fixed auto-assign (`PT-JUGO` -> `2-6`), fixed route (`0-0` -> `2-6`, distance 8, steps 9), and the no-route case (`0-0` -> `5-5`, no crash). `npm run build` passed: Vite 5.4.21 transformed 1029 modules and built successfully in 2.35s; the existing >500 kB chunk-size warning remained non-blocking. Its nested seed validation also passed with the same output.
+  - Changed files: `src/pages/Egreso.jsx`, `odd/tasks/role-aware-picking-map.md`.
+  - Rationale: an available subset remains intentionally dispatchable, but the operator must see that it is not the original complete order before issuing the remito.
+  - Commit: `bbc9fcd` (`feat(picking): clarify partial outbound dispatch`).
 
 ## Progress and evidence
 
-- Current state: ODD-01, ODD-02, and ODD-03 are complete and verified.
+- Current state: ODD-01, ODD-02, ODD-03, and ODD-04 are complete and verified.
 - Mapping evidence: inbound uses `receptionId`, outbound uses `dispatchId`, and `WarehouseMap` derives each rack's visual slot from its logical coordinates.
-- Next step: implement ODD-04 as a bounded work unit.
+- Next step: no further work is required for this bounded change.

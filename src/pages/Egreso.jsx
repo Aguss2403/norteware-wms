@@ -37,6 +37,10 @@ function formatDateTime(date) {
   return date.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+function quantityLabel(value, singular, plural) {
+  return `${value} ${value === 1 ? singular : plural}`;
+}
+
 export default function Egreso() {
   const { client, layout, stock, recordOrderOutbound } = useClient();
   const [lines, setLines] = useState([]);
@@ -112,6 +116,14 @@ export default function Egreso() {
   }
 
   const orderEmpty = lines.length === 0;
+  const readyUnits = pickResult?.okLines.reduce((sum, line) => sum + line.qty, 0) ?? 0;
+  const excludedLines = pickResult ? pickResult.lines.length - pickResult.okLines.length : 0;
+  const excludedUnits = pickResult
+    ? pickResult.lines
+      .filter((line) => line.status !== 'ok')
+      .reduce((sum, line) => sum + line.qty, 0)
+    : 0;
+  const isPartialFulfillment = pickResult && excludedLines > 0;
 
   return (
     <section className="mx-auto max-w-5xl">
@@ -208,11 +220,18 @@ export default function Egreso() {
               → Despacho
             </p>
           )}
+          {isPartialFulfillment && (
+            <Alert severity="warning" sx={{ mt: 3 }}>
+              <strong>Despacho parcial.</strong> Se despacharán {quantityLabel(pickResult.okLines.length, 'línea', 'líneas')} y{' '}
+              {quantityLabel(readyUnits, 'unidad', 'unidades')}. Se excluirán{' '}
+              {quantityLabel(excludedLines, 'línea', 'líneas')} y {quantityLabel(excludedUnits, 'unidad', 'unidades')}.
+            </Alert>
+          )}
           {pickResult.okLines.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <OperatorSelect value={operator} onChange={setOperator} />
               <Button variant="contained" onClick={confirm}>
-                Confirmar picking
+                {isPartialFulfillment ? 'Despachar líneas disponibles' : 'Confirmar despacho'}
               </Button>
             </div>
           )}
