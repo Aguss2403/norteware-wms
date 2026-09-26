@@ -34,8 +34,8 @@ export const warehouseVisuals = {
     ],
     rack: COMMON_RACK,
     rackBanks: [
-      { id: 'citrus-bulk', label: 'BAHÍA A-01', aisleLabel: 'PASILLO A-01', x: 274, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge' },
-      { id: 'citrus-main', label: 'BAHÍA A-02', aisleLabel: 'PASILLO A-02', x: 582, y: 144, width: 246, height: 80, rows: 1, columns: 5, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge' },
+      { id: 'citrus-bulk', label: 'BAHÍA A-01', aisleLabel: 'PASILLO A-01', x: 274, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge', locationIds: ['1-6', '1-7', '2-6', '2-7'] },
+      { id: 'citrus-main', label: 'BAHÍA A-02', aisleLabel: 'PASILLO A-02', x: 582, y: 144, width: 246, height: 80, rows: 1, columns: 5, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge', locationIds: ['4-3', '4-4', '5-3', '5-4', '5-5'] },
     ],
     aisles: [
       { id: 'citrus-west', label: 'PASILLO A-01', x: 274, y: 242, width: 246, height: 16, orientation: 'horizontal' },
@@ -83,8 +83,8 @@ export const warehouseVisuals = {
     ],
     rack: COMMON_RACK,
     rackBanks: [
-      { id: 'sugar-bulk', label: 'BAHÍA B-01', aisleLabel: 'PASILLO B-01', x: 290, y: 144, width: 268, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge' },
-      { id: 'sugar-main', label: 'BAHÍA B-02', aisleLabel: 'PASILLO B-02', x: 618, y: 144, width: 254, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge' },
+      { id: 'sugar-bulk', label: 'BAHÍA B-01', aisleLabel: 'PASILLO B-01', x: 290, y: 144, width: 268, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge', locationIds: ['1-2', '1-3', '1-4', '1-5'] },
+      { id: 'sugar-main', label: 'BAHÍA B-02', aisleLabel: 'PASILLO B-02', x: 618, y: 144, width: 254, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge', locationIds: ['3-2', '3-3', '3-4', '3-5'] },
     ],
     aisles: [
       { id: 'sugar-north', label: 'PASILLO B-01', x: 290, y: 242, width: 268, height: 16, orientation: 'horizontal' },
@@ -132,8 +132,8 @@ export const warehouseVisuals = {
     ],
     rack: COMMON_RACK,
     rackBanks: [
-      { id: 'wholesale-bulk', label: 'BAHÍA C-01', aisleLabel: 'PASILLO C-01', x: 306, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge' },
-      { id: 'wholesale-main', label: 'BAHÍA C-02', aisleLabel: 'PASILLO C-02', x: 608, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge' },
+      { id: 'wholesale-bulk', label: 'BAHÍA C-01', aisleLabel: 'PASILLO C-01', x: 306, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge', locationIds: ['1-0', '1-1', '1-2', '1-6'] },
+      { id: 'wholesale-main', label: 'BAHÍA C-02', aisleLabel: 'PASILLO C-02', x: 608, y: 144, width: 246, height: 80, rows: 1, columns: 4, orientation: 'horizontal', accessSide: 'bottom', accessSides: ['bottom'], accessGap: 10, accessAnchor: 'slot-edge', locationIds: ['2-0', '2-1', '2-2', '2-6'] },
     ],
     aisles: [
       { id: 'wholesale-pick', label: 'PASILLO C-01', x: 90, y: 242, width: 154, height: 30, orientation: 'horizontal' },

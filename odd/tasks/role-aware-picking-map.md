@@ -52,6 +52,10 @@ The current UI exposes every screen to every user. A presentation-friendly role 
   - Verification observed: `node scripts/validate-seeds.mjs` passed; `npm run build` passed (Vite 5.4.21; existing chunk-size warning only). Manual source inspection confirmed citrus inbound `0-0 -> 2-6` and outbound `5-7 -> 1-6`; no compound multi-SKU route or partial-fulfillment behavior was changed.
   - Rationale: endpoints must be distinct in the grid, BFS, nearest-rack selection, and SVG projection; moving only a visual marker would leave operational routes incorrect.
   - Commit: `e55d4b3` (`feat(map): separate warehouse operation endpoints`).
+  - Regression fix (2026-09-26): logical rack IDs now have explicit `rackBanks[].locationIds` membership in the presentation profile. `WarehouseMap` derives each slot only from that membership and the containing bank geometry, rather than from logical route coordinates or layout-array order. Routes still use the logical BFS path; their final segment enters the mapped rack's bottom access point beside the bank aisle.
+  - Regression validation: `node scripts/validate-seeds.mjs` passed; `npm run build` passed (Vite 5.4.21, 1029 modules, 2.32 s; existing >500 kB chunk warning only). Seed validation now verifies one explicit visual-bank assignment per logical rack, no duplicates, and no bank capacity overflow.
+  - Regression files: `src/data/warehouseVisuals.js`, `src/components/WarehouseMap.jsx`, `scripts/validate-seeds.mjs`, `odd/tasks/role-aware-picking-map.md`.
+  - Regression commit: recorded in the local delivery result (`fix(map): restore visual rack bank placement`).
 - [x] ODD-03 — Build a compound multi-stop outbound route and render route legs/return-to-dispatch state.
   - Completed: `resolveOrder` now resolves available lines in selection order as one Dispatch -> rack stops -> Dispatch route. It returns the joined path, ordered stops, leg segments, total distance, and total steps; every join cell is represented once. Unavailable, insufficient, and unreachable lines retain their existing UI status and do not remove earlier valid legs.
   - Presentation: Egreso renders the compound route and a concise ordered Spanish summary. The map keeps its resting behavior and adds numbered pick-stop markers plus a return-to-dock endpoint for compound routes.
@@ -70,6 +74,9 @@ The current UI exposes every screen to every user. A presentation-friendly role 
 
 ## Progress and evidence
 
-- Current state: ODD-01, ODD-02, ODD-03, and ODD-04 are complete and verified.
-- Mapping evidence: inbound uses `receptionId`, outbound uses `dispatchId`, and `WarehouseMap` derives each rack's visual slot from its logical coordinates.
-- Next step: no further work is required for this bounded change.
+- Current state: ODD-01 through ODD-04 are complete and verified; the ODD-02 visual-placement regression is fixed.
+- Regression note (2026-09-26): direct logical-coordinate placement broke visual zone placement, as confirmed by the supplied screenshot. Citrus racks `2-6` and `2-7` rendered in `PICKING RÁPIDO`, while racks such as `4-3` floated in `CONTROL DE CALIDAD`, instead of remaining in their intended visual rack bays.
+- Mapping evidence: every rack location has auditable explicit `rackBanks[].locationIds` membership. Citrus `2-6` and `2-7` render in `citrus-bulk` (`BAHÍA A-01`); `4-3` and `5-3` render in `citrus-main` (`BAHÍA A-02`). All are geometrically contained within their bank and therefore their intended storage zone.
+- Route evidence: inbound still starts at `receptionId`, outbound still starts and returns to `dispatchId`, and multi-stop BFS behavior is unchanged. At a rack endpoint, the SVG turns into the mapped bank's bottom access point immediately above its corresponding aisle instead of projecting the rack to raw grid coordinates.
+- Verification: `node scripts/validate-seeds.mjs` passed; `npm run build` passed (with the existing chunk-size warning only).
+- Next step: confirm browser rendering against the supplied screenshot when a browser is available.

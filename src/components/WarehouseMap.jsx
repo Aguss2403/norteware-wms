@@ -81,17 +81,33 @@ function visualDockEntrance(layout, profile, locationId) {
 }
 
 function rackSlotMap(layout, profile) {
-  return new Map(layout.locations.filter((location) => location.type === 'rack').map((location) => {
-    const routeGeometry = profile.routeGeometry;
-    const center = routeGeometry?.columnX?.[location.col] !== undefined && routeGeometry?.rowY?.[location.row] !== undefined
-      ? { x: routeGeometry.columnX[location.col], y: routeGeometry.rowY[location.row] }
-      : {
-          x: profile.logicalGrid.x + ((location.col + 0.5) / layout.cols) * profile.logicalGrid.width,
-          y: profile.logicalGrid.y + ((location.row + 0.5) / layout.rows) * profile.logicalGrid.height,
-        };
-    const bank = { x: center.x - 24, y: center.y - 18, width: 48, height: 36, accessSide: 'bottom', accessGap: 0 };
-    return [location.locationId, { bank, x: bank.x, y: bank.y, width: bank.width, height: bank.height, center, accessPoint: center }];
-  }));
+  const slots = new Map();
+  for (const rackBank of profile.rackBanks ?? []) {
+    const locationIds = rackBank.locationIds ?? [];
+    const columns = rackBank.columns ?? locationIds.length;
+    const rows = rackBank.rows ?? 1;
+    const gap = 6;
+    const paddingX = 8;
+    const paddingY = 12;
+    const slotWidth = (rackBank.width - (paddingX * 2) - (gap * (columns - 1))) / columns;
+    const slotHeight = (rackBank.height - (paddingY * 2) - (gap * (rows - 1))) / rows;
+
+    locationIds.forEach((locationId, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const bank = {
+        x: rackBank.x + paddingX + column * (slotWidth + gap),
+        y: rackBank.y + paddingY + row * (slotHeight + gap),
+        width: slotWidth,
+        height: slotHeight,
+        accessSide: rackBank.accessSide,
+        accessGap: rackBank.accessGap,
+      };
+      const center = { x: bank.x + bank.width / 2, y: bank.y + bank.height / 2 };
+      slots.set(locationId, { bank, bankId: rackBank.id, x: bank.x, y: bank.y, width: bank.width, height: bank.height, center });
+    });
+  }
+  return slots;
 }
 
 function rackAccessPoint(slot) {

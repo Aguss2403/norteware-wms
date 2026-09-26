@@ -10,6 +10,7 @@
 
 import { clients } from '../src/data/clients.js';
 import { layouts } from '../src/data/layouts.js';
+import { warehouseVisuals } from '../src/data/warehouseVisuals.js';
 import { skus } from '../src/data/skus.js';
 import { findRoute } from '../src/domain/bfs.js';
 import { findNearestFreeRack, findNearestRackOfType } from '../src/domain/assign.js';
@@ -71,6 +72,27 @@ for (const layout of layouts) {
 
   const reachableFree = free.filter((rack) => findRoute(layout, layout.dockId, rack.locationId).path.length > 0);
   check(reachableFree.length >= 1, `${prefix} has no reachable free rack`);
+}
+
+// Presentation contract: each logical rack has one explicit visual-bank slot.
+// This stays outside the domain model; it protects the audited profile data from
+// silently drifting back to logical-grid projection or array-order placement.
+for (const layout of layouts) {
+  const prefix = `[${layout.clientId} visual]`;
+  const profile = warehouseVisuals[layout.clientId];
+  const rackIds = layout.locations.filter((location) => isRack(location)).map((location) => location.locationId);
+  const mappedIds = profile?.rackBanks?.flatMap((bank) => bank.locationIds ?? []) ?? [];
+  const mappedSet = new Set(mappedIds);
+  check(profile, `${prefix} is missing a visual profile`);
+  check(mappedIds.length === mappedSet.size, `${prefix} rack locationIds must not be assigned to multiple banks`);
+  check(mappedIds.length === rackIds.length, `${prefix} must map every logical rack to one visual slot`);
+  for (const rackId of rackIds) {
+    check(mappedSet.has(rackId), `${prefix} rack "${rackId}" is missing a visual-bank assignment`);
+  }
+  for (const bank of profile?.rackBanks ?? []) {
+    check(bank.locationIds?.length <= bank.rows * bank.columns,
+      `${prefix} bank "${bank.id}" has more rack assignments than visual slots`);
+  }
 }
 
 // 3. Assigned-type coverage: every assigned type has >= 1 rack somewhere
