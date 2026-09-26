@@ -184,6 +184,63 @@ function pointsForRoute(layout, route, profile, rackSlots) {
   return points.every(Boolean) ? simplifyRoutePoints(points) : [];
 }
 
+function routeLocationIds(route) {
+  const stops = route?.stops?.map((stop) => stop.locationId).filter(Boolean) ?? [];
+  if (stops.length > 1) return stops;
+  if (!Array.isArray(route?.path) || route.path.length === 0) return [];
+  return [route.path[0], route.path.at(-1)];
+}
+
+function navigationPath(profile, fromLocationId, toLocationId) {
+  const navigation = profile.navigation;
+  const fromId = navigation?.locationNodes?.[fromLocationId];
+  const toId = navigation?.locationNodes?.[toLocationId];
+  if (!fromId || !toId) return null;
+
+  const nodes = new Map(navigation.nodes.map((node) => [node.id, node]));
+  const neighbours = new Map();
+  for (const edge of navigation.edges) {
+    neighbours.set(edge.from, [...(neighbours.get(edge.from) ?? []), edge.to]);
+    neighbours.set(edge.to, [...(neighbours.get(edge.to) ?? []), edge.from]);
+  }
+
+  const queue = [fromId];
+  const previous = new Map([[fromId, null]]);
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (current === toId) break;
+    for (const neighbour of neighbours.get(current) ?? []) {
+      if (!previous.has(neighbour)) {
+        previous.set(neighbour, current);
+        queue.push(neighbour);
+      }
+    }
+  }
+  if (!previous.has(toId)) return null;
+
+  const nodeIds = [];
+  for (let current = toId; current; current = previous.get(current)) nodeIds.unshift(current);
+  return nodeIds.map((nodeId) => nodes.get(nodeId));
+}
+
+function displayRoute(layout, route, profile, rackSlots) {
+  const locations = routeLocationIds(route);
+  if (locations.length < 2) return { legs: [], stopPoints: new Map() };
+
+  const legs = [];
+  const stopPoints = new Map();
+  for (let index = 0; index < locations.length - 1; index += 1) {
+    const fromId = locations[index];
+    const toId = locations[index + 1];
+    const points = navigationPath(profile, fromId, toId)
+      ?? pointsForRoute(layout, { path: [fromId, toId] }, profile, rackSlots);
+    if (points.length === 0) continue;
+    stopPoints.set(toId, points.at(-1));
+    legs.push({ points, phase: index === locations.length - 2 && route?.stops?.at(-1)?.kind === 'return' ? 'return' : 'outbound' });
+  }
+  return { legs, stopPoints };
+}
+
 function rackSegment(start, end) {
   const { bank } = end.rackSlot;
   const side = bank.accessSide ?? 'bottom';
@@ -311,6 +368,34 @@ function RouteLaneLayer({ routeLanes }) {
   );
 }
 
+function NavigationLayer({ navigation }) {
+  if (!navigation) return null;
+  const nodes = new Map(navigation.nodes.map((node) => [node.id, node]));
+  const labeledCorridors = new Set();
+  return (
+    <g aria-label="Red física de corredores" role="group">
+      {navigation.edges.map((edge, index) => {
+        const from = nodes.get(edge.from);
+        const to = nodes.get(edge.to);
+        if (!from || !to) return null;
+        const showLabel = !edge.label.startsWith('Acceso') && !labeledCorridors.has(edge.label);
+        if (showLabel) labeledCorridors.add(edge.label);
+        return (
+          <g key={`${edge.from}-${edge.to}-${index}`} aria-label={edge.label} role="group">
+            <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={COLORS.lane} strokeWidth="20" strokeLinecap="round" strokeOpacity="0.35" />
+            <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={COLORS.laneDash} strokeWidth="1" strokeDasharray="2 10" strokeLinecap="round" strokeOpacity="0.7" />
+            {showLabel && (
+              <text x={(from.x + to.x) / 2} y={(from.y + to.y) / 2 - 12} fill={COLORS.muted} fontSize="9" fontWeight="700" textAnchor="middle">
+                {edge.label}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 function RackAccessMarker({ slot }) {
   const { bank } = slot;
   const side = bank.accessSide ?? 'bottom';
@@ -404,7 +489,7 @@ function CueLayer({ cues }) {
   return (
     <g aria-hidden="true">
       {cues.map((cue) => (
-        <g key={cue.kind} transform={`translate(${cue.x} ${cue.y})`}>
+        <g key={cue.id ?? cue.kind} transform={`translate(${cue.x} ${cue.y})`}>
           {cue.kind === 'truck' && (
             <>
               <rect x="-24" y="-10" width="32" height="19" rx="2" fill="#768391" />
@@ -445,16 +530,21 @@ function CueLayer({ cues }) {
   );
 }
 
-function RouteLayer({ points, stops, finished }) {
-  if (points.length === 0) return null;
-  const pathData = orthogonalPath(points);
-  const first = points[0];
-  const last = points[points.length - 1];
+function RouteLayer({ legs, stops, finished }) {
+  if (legs.length === 0) return null;
+  const first = legs[0].points[0];
+  const last = legs.at(-1).points.at(-1);
   return (
     <g aria-label="Ruta operativa" role="group">
       <title>Ruta operativa continua</title>
-      <path d={pathData} fill="none" stroke={COLORS.routeDark} strokeWidth="15" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={pathData} fill="none" stroke={COLORS.route} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+      {legs.map((leg, index) => {
+        const color = leg.phase === 'return' ? '#f0a24b' : COLORS.route;
+        const pathData = orthogonalPath(leg.points);
+        return <g key={`${leg.phase}-${index}`}>
+          <path d={pathData} fill="none" stroke={COLORS.routeDark} strokeWidth="15" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={pathData} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+        </g>;
+      })}
       <circle cx={first.x} cy={first.y} r="10" fill={COLORS.brand} stroke={COLORS.text} strokeWidth="2" />
       <text x={first.x + 16} y={first.y - 14} fill={COLORS.text} fontSize="11" fontWeight="700">INICIO · MUELLE</text>
       {finished && stops.filter((stop) => stop.kind === 'pick').map((stop) => (
@@ -467,7 +557,7 @@ function RouteLayer({ points, stops, finished }) {
       ))}
       {finished && (
         <>
-           <circle cx={last.x} cy={last.y} r="10" fill={COLORS.route} fillOpacity="0.25" stroke={COLORS.route} strokeWidth="3" />
+          <circle cx={last.x} cy={last.y} r="10" fill="#f0a24b" fillOpacity="0.25" stroke="#f0a24b" strokeWidth="3" />
            <path d={`M ${last.x - 6} ${last.y} H ${last.x + 6} M ${last.x} ${last.y - 6} V ${last.y + 6}`} stroke={COLORS.text} strokeWidth="2" />
           <text x={last.x + 18} y={last.y + 5} fill={COLORS.text} fontSize="11" fontWeight="700">
             {stops.at(-1)?.kind === 'return' ? 'REGRESO · MUELLE' : 'DESTINO · ESTANTE'}
@@ -483,7 +573,8 @@ function Legend() {
   // family. Seeds only yield free/occupied racks (design D4), so the third
   // entry reads "ocupado" — "lleno" is reserved for the inventory module.
   const items = [
-    [COLORS.route, 'Ruta activa'],
+    [COLORS.route, 'Tramos de salida y picking'],
+    ['#f0a24b', 'Regreso a despacho'],
     [COLORS.rack, 'Rack ocupado'],
     [COLORS.rackFree, 'Rack libre'],
   ];
@@ -535,15 +626,15 @@ export default function WarehouseMap({ route = null }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const hasRoute = Boolean(route && Array.isArray(route.path) && route.path.length > 0);
   const rackSlots = useMemo(() => rackSlotMap(layout, profile), [layout, profile]);
-  const projectedRoute = useMemo(() => pointsForRoute(layout, route, profile, rackSlots), [layout, profile, rackSlots, route]);
+  const projectedRoute = useMemo(() => displayRoute(layout, route, profile, rackSlots), [layout, profile, rackSlots, route]);
   const projectedStops = useMemo(
     () => (route?.stops ?? [])
-      .map((stop) => ({ ...stop, point: pointFor(layout, stop.locationId, profile, rackSlots) }))
+      .map((stop) => ({ ...stop, point: projectedRoute.stopPoints.get(stop.locationId) ?? pointFor(layout, stop.locationId, profile, rackSlots) }))
       .filter((stop) => stop.point),
-    [layout, profile, rackSlots, route]
+    [layout, profile, rackSlots, route, projectedRoute]
   );
-  const hasRenderableRoute = hasRoute && projectedRoute.length > 0;
-  const visibleRoute = hasRenderableRoute ? projectedRoute.slice(0, revealCount) : [];
+  const hasRenderableRoute = hasRoute && projectedRoute.legs.length > 0;
+  const visibleRoute = hasRenderableRoute ? projectedRoute.legs.slice(0, revealCount) : [];
   const mapId = `warehouse-map-${layout.clientId}`;
   const descriptionId = `${mapId}-description`;
 
@@ -552,7 +643,7 @@ export default function WarehouseMap({ route = null }) {
     setFinished(false);
     if (!hasRenderableRoute) return undefined;
     if (prefersReducedMotion) {
-      setRevealCount(projectedRoute.length);
+      setRevealCount(projectedRoute.legs.length);
       setFinished(true);
       return undefined;
     }
@@ -561,13 +652,13 @@ export default function WarehouseMap({ route = null }) {
     const timer = setInterval(() => {
       index += 1;
       setRevealCount(index);
-      if (index >= projectedRoute.length) {
+      if (index >= projectedRoute.legs.length) {
         setFinished(true);
         clearInterval(timer);
       }
     }, REVEAL_STEP_MS);
     return () => clearInterval(timer);
-  }, [hasRenderableRoute, layout, prefersReducedMotion, projectedRoute.length, route]);
+  }, [hasRenderableRoute, layout, prefersReducedMotion, projectedRoute.legs.length, route]);
 
   const status = hasRenderableRoute && finished
     ? `Ruta: ${route.steps} pasos · ${route.distance} tramos`
@@ -620,20 +711,21 @@ export default function WarehouseMap({ route = null }) {
           >
             <title id={`${mapId}-title`}>Plano industrial de {client.name}</title>
             <desc id={descriptionId}>
-               Mapa operativo con seis zonas, estantes, corredores, muelles y puertas del almacén activo de {client.name}. La ruta se calcula desde la entrada del muelle hasta el acceso del estante destino.
+               Mapa operativo con corredores físicos, estantes, muelles y puertas del almacén activo de {client.name}. Las rutas visibles recorren únicamente corredores y conectores de acceso.
             </desc>
             <rect width="1200" height="680" fill={COLORS.background} />
             <rect x="24" y="24" width="1152" height="632" rx="16" fill={COLORS.surface} stroke={COLORS.border} strokeWidth="2" />
             <text x="52" y="52" fill={COLORS.muted} fontSize="11" fontWeight="700" letterSpacing="2">PLANO OPERATIVO</text>
              <text x="1150" y="52" fill={COLORS.text} fontSize="15" fontWeight="700" textAnchor="end">{client.name}</text>
              <ZoneLayer zones={profile.zones} mapId={mapId} />
-             <RouteLaneLayer routeLanes={profile.routeLanes ?? []} />
+             <NavigationLayer navigation={profile.navigation} />
+             <RouteLaneLayer routeLanes={profile.navigation ? [] : profile.routeLanes ?? []} />
              <AisleLayer aisles={profile.aisles} />
              <RackLayer layout={layout} profile={profile} />
             <DockLayer layout={layout} profile={profile} />
             <DoorLayer doors={profile.doors} />
             <CueLayer cues={profile.cues} />
-            <RouteLayer points={visibleRoute} stops={projectedStops} finished={finished} />
+            <RouteLayer legs={visibleRoute} stops={projectedStops} finished={finished} />
           </svg>
         </div>
         {/* Dotted 16px background grid (mockup .map-grid): covers the whole map

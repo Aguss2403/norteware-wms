@@ -18,6 +18,10 @@ The current UI exposes every screen to every user. A presentation-friendly role 
 - Sequential multi-SKU pick route: dispatch -> selected available stops in order -> dispatch.
 - Correct visual/logical rack mapping and add clear route-leg presentation where appropriate.
 - One bounded operational improvement if supported by the existing flow: make partial outbound fulfillment explicit rather than silently shipping only ready lines.
+- Replace free-form route projection with a strict physical corridor network: named aisles, permitted intersections, and short rack-access connectors.
+- For outbound picking, render outbound and between-stop legs in green, numbered stop markers, and only the final return-to-dispatch leg in orange.
+- Simplify the map by removing the quality-control zone, pallet, and forklift cues; retain scanners at Reception and Dispatch.
+- Defer rack-capacity fill indicators (10 units per rack) until the corridor redesign is complete.
 
 ## Constraints
 
@@ -31,12 +35,14 @@ The current UI exposes every screen to every user. A presentation-friendly role 
 ## Acceptance criteria
 
 - [x] ODD-01 Role selector is available in the product topbar, persists after reload, and names the active role.
-- [ ] ODD-02 Operator sees only operational routes; Manager sees only Dashboard, Inventory, and Traceability; blocked direct URLs redirect safely.
-- [ ] ODD-03 Inbound path starts at Reception and outbound path starts/ends at Dispatch, with domain and SVG views agreeing.
-- [ ] ODD-04 A multi-line outbound order renders one continuous ordered route across all available stops, including a return leg to Dispatch.
-- [ ] ODD-05 Rack labels, rack positions, and rendered route endpoints use the same logical location mapping.
-- [ ] ODD-06 Partial fulfillment is explicit to the operator before confirmation.
-- [ ] ODD-07 `node scripts/validate-seeds.mjs` and `npm run build` pass after each relevant work unit.
+- [x] ODD-02 Operator sees only operational routes; Manager sees only Dashboard, Inventory, and Traceability; blocked direct URLs redirect safely.
+- [x] ODD-03 Inbound path starts at Reception and outbound path starts/ends at Dispatch, with domain and SVG views agreeing.
+- [x] ODD-04 A multi-line outbound order renders one continuous ordered route across all available stops, including a return leg to Dispatch.
+- [x] ODD-05 Rack labels, rack positions, and rendered route endpoints use the same logical location mapping.
+- [x] ODD-06 Partial fulfillment is explicit to the operator before confirmation.
+- [x] ODD-07 `node scripts/validate-seeds.mjs` and `npm run build` pass after each relevant work unit.
+- [x] ODD-08 Routes use only the explicit physical corridor network; outbound legs are green and the final return leg is orange.
+- [ ] ODD-09 Deferred: racks expose an occupancy fill indicator against a 10-unit capacity.
 
 ## Work plan
 
@@ -71,12 +77,22 @@ The current UI exposes every screen to every user. A presentation-friendly role 
   - Changed files: `src/pages/Egreso.jsx`, `odd/tasks/role-aware-picking-map.md`.
   - Rationale: an available subset remains intentionally dispatchable, but the operator must see that it is not the original complete order before issuing the remito.
   - Commit: `bbc9fcd` (`feat(picking): clarify partial outbound dispatch`).
+- [x] ODD-08 — Redesign the warehouse map around explicit operational corridors and direction-aware route legs.
+  - Completed: Citrus now declares an auditable presentation-only navigation graph with named `Corredor principal`, `Conexión de recepción`, `Conexión de despacho`, `Pasillo A-01`, `Pasillo A-02`, and short rack-access connectors. Display routing resolves ordered endpoint and pick-stop identities through that graph; the domain BFS and assignment model remain unchanged. Profiles without navigation data use the existing safe route projection rather than failing.
+  - Presentation: Dispatch-to-pick and pick-to-pick legs render green; only the final return-to-Dispatch leg renders orange. Pick markers retain their ordered numbers, and Dispatch retains distinct start and return markers. The resting map renders the physical corridors without an active colored route.
+  - Citrus simplification: removed `CONTROL DE CALIDAD`, pallet, and forklift cues. Scanners are now rendered only at Reception and Dispatch.
+  - Verification actual output: `node scripts/validate-seeds.mjs` passed for 3 clients, 3 layouts, and 8 SKUs; it additionally validates Citrus navigation-node references, rack access nodes, and the Dispatch navigation node. `npm run build` passed with Vite 5.4.21 (1029 modules, 2.23 s); its nested seed validation passed. The existing >500 kB chunk-size warning remained non-blocking.
+  - Source audit: Dispatch (`5-7`) reaches the first Citrus rack through `Conexión de despacho` -> `Corredor principal` -> `Conexión A-01`/`A-02` -> named aisle -> vertical rack-access connector. Consecutive selected stops are emitted as individual green legs; the final `return` stop is the only orange leg. Every Citrus graph edge is horizontal or vertical, so no route crosses a zone interior.
+  - Commit: recorded in the local delivery result for this work unit.
+- [ ] ODD-09 — Deferred rack occupancy fill indicator.
+  - Scope: fixed capacity of 10 units per rack, visual fill state driven by current stock.
+  - Reason for deferral: must not be mixed with the route-network redesign.
 
 ## Progress and evidence
 
-- Current state: ODD-01 through ODD-04 are complete and verified; the ODD-02 visual-placement regression is fixed.
+- Current state: ODD-01 through ODD-08 are complete and verified; ODD-09 remains explicitly deferred.
 - Regression note (2026-09-26): direct logical-coordinate placement broke visual zone placement, as confirmed by the supplied screenshot. Citrus racks `2-6` and `2-7` rendered in `PICKING RÁPIDO`, while racks such as `4-3` floated in `CONTROL DE CALIDAD`, instead of remaining in their intended visual rack bays.
 - Mapping evidence: every rack location has auditable explicit `rackBanks[].locationIds` membership. Citrus `2-6` and `2-7` render in `citrus-bulk` (`BAHÍA A-01`); `4-3` and `5-3` render in `citrus-main` (`BAHÍA A-02`). All are geometrically contained within their bank and therefore their intended storage zone.
 - Route evidence: inbound still starts at `receptionId`, outbound still starts and returns to `dispatchId`, and multi-stop BFS behavior is unchanged. At a rack endpoint, the SVG turns into the mapped bank's bottom access point immediately above its corresponding aisle instead of projecting the rack to raw grid coordinates.
 - Verification: `node scripts/validate-seeds.mjs` passed; `npm run build` passed (with the existing chunk-size warning only).
-- Next step: confirm browser rendering against the supplied screenshot when a browser is available.
+- Next step: keep ODD-09 deferred until a separate rack-occupancy work unit is approved.

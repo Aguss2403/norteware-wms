@@ -93,6 +93,16 @@ for (const layout of layouts) {
     check(bank.locationIds?.length <= bank.rows * bank.columns,
       `${prefix} bank "${bank.id}" has more rack assignments than visual slots`);
   }
+  if (layout.clientId === 'citrus') {
+    const navigation = profile?.navigation;
+    const nodeIds = new Set(navigation?.nodes?.map((node) => node.id));
+    check(Boolean(navigation), `${prefix} must declare an explicit physical navigation graph`);
+    check(navigation?.edges?.every((edge) => nodeIds.has(edge.from) && nodeIds.has(edge.to)),
+      `${prefix} navigation edges must reference declared nodes`);
+    check(rackIds.every((rackId) => nodeIds.has(navigation?.locationNodes?.[rackId])),
+      `${prefix} every rack must have an explicit navigation access node`);
+    check(navigation?.locationNodes?.[layout.dispatchId], `${prefix} dispatch must have a navigation node`);
+  }
 }
 
 // 3. Assigned-type coverage: every assigned type has >= 1 rack somewhere
